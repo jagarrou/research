@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AGSCR · Tablero ENAHO 2025 · Personas jóvenes 6-25</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0/dist/chartjs-plugin-datalabels.min.js"></script>
+<style>
+:root {
+  --primario: #5C2D91;
+  --secundario: #F39200;
+  --verde: #5C9F4D;
+  --rojo: #D9534F;
+  --azul: #1F77B4;
+  --rosa: #C44569;
+  --gris: #7C7C7C;
+  --fondo: #F8F6FA;
+  --texto: #222;
+  --suave: #555;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  background: var(--fondo);
+  color: var(--texto);
+}
+header {
+  background: linear-gradient(135deg, #5C2D91 0%, #7B3FB6 100%);
+  color: white;
+  padding: 24px 32px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+}
+header h1 { margin: 0 0 6px 0; font-size: 22px; font-weight: 700; }
+header .subtitulo { font-size: 13px; opacity: 0.9; }
+header .marcas { font-size: 12px; opacity: 0.8; margin-top: 6px; }
+nav {
+  background: white;
+  border-bottom: 1px solid #ddd;
+  padding: 0 32px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+nav button {
+  background: transparent;
+  border: none;
+  padding: 14px 18px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--suave);
+  border-bottom: 3px solid transparent;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+nav button:hover { color: var(--primario); }
+nav button.activo {
+  color: var(--primario);
+  border-bottom-color: var(--primario);
+  font-weight: 700;
+}
+main { padding: 24px 32px; max-width: 1400px; margin: 0 auto; }
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.kpi {
+  background: white;
+  border-radius: 10px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  border-left: 4px solid var(--primario);
+}
+.kpi .valor {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--primario);
+  line-height: 1.2;
+}
+.kpi .etiq {
+  font-size: 12px;
+  color: var(--suave);
+  margin-top: 4px;
+  line-height: 1.3;
+}
+.kpi.warn { border-left-color: var(--rojo); }
+.kpi.warn .valor { color: var(--rojo); }
+.kpi.info { border-left-color: var(--secundario); }
+.kpi.info .valor { color: var(--secundario); }
+.kpi.ok { border-left-color: var(--verde); }
+.kpi.ok .valor { color: var(--verde); }
+.grid-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+  gap: 20px;
+}
+.card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+.card h3 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--texto);
+}
+.card .sub {
+  font-size: 12px;
+  color: var(--suave);
+  margin-bottom: 14px;
+  font-style: italic;
+}
+.card .filtros {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  font-size: 12px;
+}
+.card .filtros button {
+  background: #eee;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 4px 10px;
+  cursor: pointer;
+  font-size: 11px;
+}
+.card .filtros button.activo {
+  background: var(--primario);
+  color: white;
+  border-color: var(--primario);
+}
+.card .grafico { position: relative; height: 320px; }
+.card.grande { grid-column: 1 / -1; }
+.card.grande .grafico { height: 380px; }
+.tab { display: none; }
+.tab.activa { display: block; }
+.pregunta-critica {
+  background: linear-gradient(135deg, #FFF7E6 0%, #FFE9C2 100%);
+  border-left: 4px solid var(--secundario);
+  padding: 14px 18px;
+  margin: 24px 0;
+  border-radius: 6px;
+  font-size: 14px;
+}
+.pregunta-critica strong { color: #8B5A00; }
+footer {
+  text-align: center;
+  padding: 30px;
+  color: var(--suave);
+  font-size: 12px;
+  border-top: 1px solid #ddd;
+  margin-top: 40px;
+}
+.metanota {
+  background: #EFE9F5;
+  border-left: 3px solid var(--primario);
+  padding: 10px 14px;
+  border-radius: 4px;
+  margin-bottom: 20px;
+  font-size: 12px;
+  color: var(--suave);
+}
+@media (max-width: 700px) {
+  header { padding: 16px; }
+  nav { padding: 0 16px; overflow-x: auto; }
+  main { padding: 16px; }
+  .grid-cards { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>Personas jóvenes en Costa Rica · 6 a 25 años</h1>
+  <div class="subtitulo">Insumo para el diseño del Programa Educativo · Asociación de Guías y Scouts de Costa Rica</div>
+  <div class="marcas">Fuente: ENAHO 2025 (INEC) · Base elaborada con variables nuevas para investigación · n=8,118 (no expandido) | Población 6-25: 1.428.572</div>
+</header>
+
+<nav>
+  <button class="nav-btn activo" data-tab="resumen">Resumen</button>
+  <button class="nav-btn" data-tab="perfil">¿Quiénes son?</button>
+  <button class="nav-btn" data-tab="educacion">Educación y TIC</button>
+  <button class="nav-btn" data-tab="vida">Condiciones de vida</button>
+  <button class="nav-btn" data-tab="laboral">Trabajo y NINI</button>
+  <button class="nav-btn" data-tab="metodologia">Metodología</button>
+</nav>
+
+<main>
+
+<!-- RESUMEN -->
+<div class="tab activa" id="resumen">
+  <div class="metanota">
+    Tablero pensado para detonar análisis crítico durante el taller del equipo de actualización del programa educativo.
+    Se trata de evidencia descriptiva, no causal: las brechas observadas no se interpretan como efectos de una sola causa.
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi"><div class="valor" id="kpi-pob">—</div><div class="etiq">Personas jóvenes 6-25 años (expandido)</div></div>
+    <div class="kpi warn"><div class="valor" id="kpi-pobm">—</div><div class="etiq" id="lbl-pobm">Personas en pobreza monetaria</div></div>
+    <div class="kpi warn"><div class="valor" id="kpi-ipm">—</div><div class="etiq" id="lbl-ipm">Personas en pobreza multidimensional</div></div>
+    <div class="kpi info"><div class="valor" id="kpi-asis">—</div><div class="etiq" id="lbl-asis">Personas que asisten al sistema educativo</div></div>
+    <div class="kpi ok"><div class="valor" id="kpi-aseg">—</div><div class="etiq" id="lbl-aseg">Personas con seguro de salud</div></div>
+    <div class="kpi info"><div class="valor" id="kpi-int">—</div><div class="etiq" id="lbl-int">Usaron internet (últimos 3 meses)</div></div>
+    <div class="kpi warn"><div class="valor" id="kpi-des">—</div><div class="etiq" id="lbl-des">Desempleo abierto 15-25</div></div>
+    <div class="kpi warn"><div class="valor" id="kpi-nini">—</div><div class="etiq" id="lbl-nini">Personas NINI 15-25</div></div>
+    <div class="kpi"><div class="valor" id="kpi-vol">—</div><div class="etiq" id="lbl-vol">Voluntariado 15-25</div></div>
+    <div class="kpi"><div class="valor" id="kpi-mig">—</div><div class="etiq" id="lbl-mig">Personas migrantes</div></div>
+    <div class="kpi"><div class="valor" id="kpi-disc">—</div><div class="etiq" id="lbl-disc">Personas con discapacidad</div></div>
+  </div>
+  <div class="pregunta-critica">
+    <strong>Para discusión grupal.</strong> ¿Cuál de estos indicadores nos habla más fuerte sobre dónde el Programa Educativo debe llegar primero? ¿Qué números le faltan a esta foto para representar a la persona joven que queremos formar?
+  </div>
+</div>
+
+<!-- PERFIL -->
+<div class="tab" id="perfil">
+  <div class="grid-cards">
+    <div class="card">
+      <h3>Distribución por grupo etario</h3>
+      <div class="sub">¿En qué etapa está cada quien? Cinco grupos definidos para esta investigación.</div>
+      <div class="grafico"><canvas id="g-grupo"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>¿Dónde viven?</h3>
+      <div class="sub">Población joven 6-25 por región de planificación.</div>
+      <div class="grafico"><canvas id="g-region"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Migración por grupo etario</h3>
+      <div class="sub">Población migrante: personas nacidas en otra región o país.</div>
+      <div class="grafico"><canvas id="g-mig"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Discapacidad por grupo etario</h3>
+      <div class="sub">Al menos una mención de tipo de discapacidad reportada.</div>
+      <div class="grafico"><canvas id="g-disc"></canvas></div>
+    </div>
+  </div>
+  <div class="pregunta-critica">
+    <strong>Pregunta crítica.</strong> Si AGSCR quiere reflejar al país, ¿en qué se parece o se diferencia su membresía actual de esta foto? ¿Qué grupos etarios, regiones, o experiencias están sobre o subrepresentadas?
+  </div>
+</div>
+
+<!-- EDUCACIÓN Y TIC -->
+<div class="tab" id="educacion">
+  <div class="grid-cards">
+    <div class="card grande">
+      <h3>Asistencia educativa por grupo etario</h3>
+      <div class="sub">Cae fuertemente después de los 17 años. Selecciona corte para ver brechas.</div>
+      <div class="filtros" data-target="g-asist">
+        <button class="activo" data-corte="grupo">General</button>
+        <button data-corte="quintil">Por quintil</button>
+        <button data-corte="region">Por región</button>
+        <button data-corte="zona">Urbana / Rural</button>
+        <button data-corte="mig">Migrante</button>
+        <button data-corte="pobre">Pobreza monetaria</button>
+        <button data-corte="discap">Discapacidad</button>
+      </div>
+      <div class="grafico"><canvas id="g-asist"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Rezago escolar por quintil (15-17 años)</h3>
+      <div class="sub">Estar en grado por debajo del esperado para la edad.</div>
+      <div class="grafico"><canvas id="g-rez"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Acceso a TIC (general 6-25)</h3>
+      <div class="sub">Uso reportado en los últimos 3 meses.</div>
+      <div class="grafico"><canvas id="g-tic"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Brecha digital de internet</h3>
+      <div class="sub">Selecciona dimensión para explorar la brecha.</div>
+      <div class="filtros" data-target="g-internet">
+        <button class="activo" data-corte="quintil">Por quintil</button>
+        <button data-corte="region">Por región</button>
+        <button data-corte="zona">Urbana / Rural</button>
+        <button data-corte="grupo">Por grupo etario</button>
+      </div>
+      <div class="grafico"><canvas id="g-internet"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Privaciones educativas (IPM-Educación)</h3>
+      <div class="sub">Cada barra es la prevalencia de una privación específica por grupo etario.</div>
+      <div class="grafico"><canvas id="g-ipme"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Becas e idioma</h3>
+      <div class="sub">Cobertura de becas y dominio de un segundo idioma.</div>
+      <div class="grafico"><canvas id="g-becaidioma"></canvas></div>
+    </div>
+  </div>
+  <div class="pregunta-critica">
+    <strong>Pregunta crítica.</strong> Si la asistencia se desploma a partir de los 18 años: ¿qué oferta del programa joven puede sostener el aprendizaje formal y no formal? ¿Qué hacemos cuando la membresía ya no está en el aula?
+  </div>
+</div>
+
+<!-- VIDA -->
+<div class="tab" id="vida">
+  <div class="grid-cards">
+    <div class="card grande">
+      <h3>Pobreza monetaria 6-25</h3>
+      <div class="sub">Selecciona dimensión.</div>
+      <div class="filtros" data-target="g-pob">
+        <button class="activo" data-corte="grupo">Por grupo etario</button>
+        <button data-corte="region">Por región</button>
+        <button data-corte="zona">Urbana / Rural</button>
+        <button data-corte="mig">Por migración</button>
+      </div>
+      <div class="grafico"><canvas id="g-pob"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Pobreza multidimensional (IPM)</h3>
+      <div class="sub">Combina educación, vivienda, salud, trabajo y protección social.</div>
+      <div class="grafico"><canvas id="g-ipm"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Privaciones específicas (IPM)</h3>
+      <div class="sub">Vivienda y conectividad (naranja) vs. salud y servicios (morado).</div>
+      <div class="grafico"><canvas id="g-ipmpriv"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Cobertura aseguramiento por quintil</h3>
+      <div class="sub">CCSS y otros regímenes contributivos.</div>
+      <div class="grafico"><canvas id="g-seg"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Hacinamiento por región</h3>
+      <div class="sub">Más de 2 personas por dormitorio.</div>
+      <div class="grafico"><canvas id="g-hac"></canvas></div>
+    </div>
+  </div>
+  <div class="pregunta-critica">
+    <strong>Pregunta crítica.</strong> Si una persona joven vive en hacinamiento, sin internet en casa, en una región periférica: ¿cómo deben adaptarse el calendario, los costos y la metodología del programa? ¿Qué privilegio asumimos sin notarlo?
+  </div>
+</div>
+
+<!-- LABORAL -->
+<div class="tab" id="laboral">
+  <div class="grid-cards">
+    <div class="card grande">
+      <h3>Condición de actividad por grupo etario (15-25)</h3>
+      <div class="sub">Trabaja, busca trabajo, o no participa del mercado laboral.</div>
+      <div class="grafico"><canvas id="g-cond"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Tasa de desempleo abierto</h3>
+      <div class="sub">Personas que buscan empleo / personas activas.</div>
+      <div class="grafico"><canvas id="g-des"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>NINI: ni estudia ni trabaja</h3>
+      <div class="sub">Selecciona corte.</div>
+      <div class="filtros" data-target="g-nini">
+        <button class="activo" data-corte="grupo">Por grupo etario</button>
+        <button data-corte="sexo">Por sexo</button>
+        <button data-corte="region">Por región</button>
+        <button data-corte="quintil">Por quintil</button>
+      </div>
+      <div class="grafico"><canvas id="g-nini"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Voluntariado y comunal</h3>
+      <div class="sub">¿Quiénes ya tienen experiencia de servicio en su comunidad?</div>
+      <div class="grafico"><canvas id="g-vol"></canvas></div>
+    </div>
+    <div class="card">
+      <h3>Trabajo doméstico no remunerado por sexo</h3>
+      <div class="sub">Aporte invisible al sostén de los hogares.</div>
+      <div class="grafico"><canvas id="g-tdom"></canvas></div>
+    </div>
+  </div>
+  <div class="pregunta-critica">
+    <strong>Pregunta crítica.</strong> Si el voluntariado lo hace solo 1 de cada 8 personas jóvenes: ¿qué hace que el escultismo siga siendo una experiencia significativa de servicio? ¿Cómo cuidamos que las y los jóvenes con más cargas (trabajo, cuido) puedan participar?
+  </div>
+</div>
+
+<!-- METODOLOGÍA -->
+<div class="tab" id="metodologia">
+  <div class="card grande">
+    <h3>Notas metodológicas</h3>
+    <div style="font-size: 13px; line-height: 1.7; color: var(--suave);">
+      <p><strong>Fuente.</strong> Encuesta Nacional de Hogares (ENAHO) 2025 — Instituto Nacional de Estadística y Censos (INEC). Base con variables nuevas elaboradas por la Dirección de Programa Educativo de la AGSCR.</p>
+      <p><strong>Universo del análisis.</strong> Personas residentes en hogares particulares de Costa Rica, de 6 a 25 años (n muestral = 8.118; expandido = 1.428.572). Para indicadores laborales se restringe a 15-25 años (n = 4.641; expandido = 821.988).</p>
+      <p><strong>Ponderación.</strong> Todas las estimaciones aplican el factor de expansión <code>FACTOR</code> de la encuesta. Los porcentajes refieren a la proporción de la población expandida.</p>
+      <p><strong>Intervalos de confianza.</strong> Aproximación de Wilson sobre el tamaño efectivo de Kish (<code>n_eff = (Σw)² / Σw²</code>). Sin acceso a las unidades primarias de muestreo (PSU) y estratos del diseño, este enfoque es ligeramente conservador respecto al estimador real con muestras complejas.</p>
+      <p><strong>Indicadores derivados.</strong></p>
+      <ul>
+        <li><strong>Asistencia educativa</strong>: A13 ≠ 0 (asiste a algún nivel formal o no formal).</li>
+        <li><strong>Migrante</strong>: CondMig ≠ 0 (interno o externo).</li>
+        <li><strong>Discapacidad</strong>: A8A ≠ 0 (al menos una mención de tipo).</li>
+        <li><strong>Recibe beca</strong>: cualquiera de A19A1–A19A9 = "Sí".</li>
+        <li><strong>Segundo idioma</strong>: A22A = "Sí".</li>
+        <li><strong>Índice de acceso digital</strong>: suma 0–5 de A24A–A24E.</li>
+        <li><strong>Pobreza monetaria</strong>: <code>np ∈ {1,2}</code>.</li>
+        <li><strong>Asegurado</strong>: A11 ≠ 0.</li>
+        <li><strong>NINI 15-25</strong>: <code>asiste = 0</code> y <code>CondAct ≠ "Ocupado"</code>.</li>
+        <li><strong>Subempleo</strong>: <code>Sub40Hor = 1</code>.</li>
+      </ul>
+      <p><strong>Limitaciones.</strong> ENAHO captura información a un punto del tiempo; las trayectorias se infieren por comparación entre cohortes (no longitudinal). Las definiciones operacionales pueden diferir de informes oficiales del INEC en variables específicas (p. ej., NINI usa la definición OIT más simple). Las estimaciones para subgrupos pequeños (p. ej., quintil 5 ≤ 18 años, regiones específicas) tienen IC95% más amplios.</p>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<footer>
+  Tablero generado para el taller "Construcción colaborativa del Programa Educativo AGSCR" · Mayo 2026<br>
+  Datos: ENAHO 2025 (INEC). Visualizaciones y análisis: Dirección de Programa Educativo, AGSCR.
+</footer>
+
+<script>
+const DATA = {"meta": {"pob_625": 1428572.0, "n_625": 8118, "fuente": "ENAHO 2025 - INEC. Base con variables nuevas elaborada por la Dirección de Programa Educativo de la AGSCR."}, "kpis": {"pob_625": 1428572.0, "pob_15_25": 821988, "pobreza_monetaria": 22.215019014601197, "ipm_pobreza": 17.019468263258414, "asistencia_total": 76.53600938559624, "internet_total": 90.45018381992648, "tasa_desempleo": 14.488785633341191, "nini": 14.12551034808294, "voluntariado": 1.4905327085066935, "discap": 3.9923084030766387, "migrante": 20.459241816303273, "aseg": 91.2682734926906, "pob_pobreza": 317358, "pob_ipm": 243135, "pob_asis": 1093372, "pob_int": 1292146, "pob_des": 50973, "pob_nini": 116110, "pob_vol": 12252, "pob_disc": 57033, "pob_mig": 292275, "pob_aseg": 1303833}, "sexo": [{"sexo_lbl": "Hombre", "FACTOR": 727605.0, "prop": 0.5093232962706815, "n": 4119}, {"sexo_lbl": "Mujer", "FACTOR": 700967.0, "prop": 0.4906767037293185, "n": 3999}], "grupo_edad": [{"grupo_edad_lbl": "Adolescencia media-superior (15-17)", "pop": 233231.0, "n": 1334, "prop": 0.1632616346953461}, {"grupo_edad_lbl": "Adolescencia temprana (12-14)", "pop": 215872.0, "n": 1239, "prop": 0.1511103395558641}, {"grupo_edad_lbl": "Juventud temprana (21-25)", "pop": 376771.0, "n": 2112, "prop": 0.2637395945041622}, {"grupo_edad_lbl": "Niñez intermedia (6-11)", "pop": 390712.0, "n": 2238, "prop": 0.2734982906006837}, {"grupo_edad_lbl": "Transición educativa-laboral (18-20)", "pop": 211986.0, "n": 1195, "prop": 0.1483901406439437}], "region": [{"region_lbl": "Brunca", "pop": 104616.0, "n": 740, "prop": 0.0732311707075317}, {"region_lbl": "Central", "pop": 819591.0, "n": 4381, "prop": 0.5737134705146117}, {"region_lbl": "Chorotega", "pop": 117667.0, "n": 753, "prop": 0.0823668670532531}, {"region_lbl": "Huetar Caribe", "pop": 150806.0, "n": 908, "prop": 0.1055641577743368}, {"region_lbl": "Huetar Norte", "pop": 142680.0, "n": 739, "prop": 0.0998759600496159}, {"region_lbl": "Pacífico Central", "pop": 93212.0, "n": 597, "prop": 0.0652483739006504}], "zona": [{"zona_lbl": "Rural", "pop": 437033.0, "n": 2731, "prop": 0.3059229776308089}, {"zona_lbl": "Urbana", "pop": 991539.0, "n": 5387, "prop": 0.694077022369191}], "asist_grupo": [{"p": 0.9324961090078075, "ic_low": 0.9173510234949864, "ic_high": 0.945032214600194, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 217487.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.9811971909279572, "ic_low": 0.971762260245213, "ic_high": 0.9875201619823673, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 211813.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.3865610675980901, "ic_low": 0.3653221185444947, "ic_high": 0.4082405560273603, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 145645.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.9983389299535208, "ic_low": 0.9955017065138244, "ic_high": 0.9993877227653406, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 390063.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.6055305539045032, "ic_low": 0.576845020442556, "ic_high": 0.6335069768962716, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 128364.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "asist_quintil": [{"p": 0.9159767732299888, "ic_low": 0.8868635064010775, "ic_high": 0.93812107615747, "n": 469, "n_eff": 454.7511440066175, "pop_total": 77669.0, "pop_pos": 71143.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 1.0}, {"p": 0.9132768911379264, "ic_low": 0.8778406170476049, "ic_high": 0.9391463207168363, "n": 344, "n_eff": 328.05191720048083, "pop_total": 61656.0, "pop_pos": 56309.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 2.0}, {"p": 0.9506682527464838, "ic_low": 0.9141708950591322, "ic_high": 0.972119068320164, "n": 243, "n_eff": 226.2743411266777, "pop_total": 42873.0, "pop_pos": 40758.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 3.0}, {"p": 0.9638854296388544, "ic_low": 0.9224841521974456, "ic_high": 0.9835681320555733, "n": 168, "n_eff": 160.25740827882152, "pop_total": 30514.0, "pop_pos": 29412.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 4.0}, {"p": 0.9774639570929488, "ic_low": 0.9272892171874522, "ic_high": 0.9932665749923488, "n": 109, "n_eff": 102.88213142281094, "pop_total": 20323.0, "pop_pos": 19865.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 5.0}, {"p": 0.0, "ic_low": 0.0, "ic_high": 0.7934506858870164, "n": 1, "n_eff": 1.0, "pop_total": 196.0, "pop_pos": 0.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": null}, {"p": 0.985844835192538, "ic_low": 0.9701344276212284, "ic_high": 0.9933476502782238, "n": 467, "n_eff": 450.9454799538741, "pop_total": 79335.0, "pop_pos": 78212.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 1.0}, {"p": 0.9566812163004804, "ic_low": 0.9272656648774508, "ic_high": 0.9745272000468876, "n": 311, "n_eff": 299.4234752598454, "pop_total": 54526.0, "pop_pos": 52164.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 2.0}, {"p": 0.991321584838156, "ic_low": 0.9685754555001466, "ic_high": 0.9976433694239006, "n": 237, "n_eff": 225.9870874421456, "pop_total": 41367.0, "pop_pos": 41008.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 3.0}, {"p": 0.9916953146123836, "ic_low": 0.9586897644398228, "ic_high": 0.9983751845389198, "n": 145, "n_eff": 139.65548323161934, "pop_total": 25889.0, "pop_pos": 25674.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 4.0}, {"p": 1.0, "ic_low": 0.9482128524250802, "ic_high": 0.9999999999999998, "n": 79, "n_eff": 70.33638271827101, "pop_total": 14755.0, "pop_pos": 14755.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 5.0}, {"p": 0.2804561556384853, "ic_low": 0.2334289439959265, "ic_high": 0.3328438999885049, "n": 321, "n_eff": 310.8170592109556, "pop_total": 52789.0, "pop_pos": 14805.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 1.0}, {"p": 0.3120936109721747, "ic_low": 0.269739316783307, "ic_high": 0.3578395242638865, "n": 435, "n_eff": 421.8163965344699, "pop_total": 75974.0, "pop_pos": 23711.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 2.0}, {"p": 0.3497911556736897, "ic_low": 0.3103191569080106, "ic_high": 0.3914343395320403, "n": 553, "n_eff": 527.6849346267468, "pop_total": 97441.0, "pop_pos": 34084.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 3.0}, {"p": 0.4288658059632448, "ic_low": 0.385737137787587, "ic_high": 0.4731026246784474, "n": 513, "n_eff": 489.3389671617469, "pop_total": 95116.0, "pop_pos": 40792.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 4.0}, {"p": 0.5816486627833583, "ic_low": 0.5185537750480661, "ic_high": 0.642180511110668, "n": 290, "n_eff": 240.90700300004224, "pop_total": 55451.0, "pop_pos": 32253.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 5.0}, {"p": 0.99695662689455, "ic_low": 0.9904639790048648, "ic_high": 0.9990330384488236, "n": 888, "n_eff": 860.7130060946814, "pop_total": 148848.0, "pop_pos": 148395.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 1.0}, {"p": 0.998096366585406, "ic_low": 0.9896529998776804, "ic_high": 0.9996521923711892, "n": 579, "n_eff": 551.7753297324431, "pop_total": 102961.0, "pop_pos": 102765.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 2.0}, {"p": 1.0, "ic_low": 0.9894047307435336, "ic_high": 0.9999999999999998, "n": 376, "n_eff": 358.7221281762156, "pop_total": 66918.0, "pop_pos": 66918.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 3.0}, {"p": 1.0, "ic_low": 0.9837643919648832, "ic_high": 0.9999999999999998, "n": 244, "n_eff": 232.7655606687369, "pop_total": 43775.0, "pop_pos": 43775.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 4.0}, {"p": 1.0, "ic_low": 0.972919530966134, "ic_high": 1.0, "n": 151, "n_eff": 138.01202318201572, "pop_total": 28210.0, "pop_pos": 28210.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 5.0}, {"p": 0.563619102289537, "ic_low": 0.5029858735887556, "ic_high": 0.6224082748457169, "n": 270, "n_eff": 261.21572260903525, "pop_total": 45293.0, "pop_pos": 25528.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 1.0}, {"p": 0.5748720457624568, "ic_low": 0.5171538452109233, "ic_high": 0.6306187725711107, "n": 300, "n_eff": 287.93811178131307, "pop_total": 53144.0, "pop_pos": 30551.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 2.0}, {"p": 0.5747779610165114, "ic_low": 0.5148697714649759, "ic_high": 0.6325676701903213, "n": 280, "n_eff": 267.3495905912671, "pop_total": 50329.0, "pop_pos": 28928.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 3.0}, {"p": 0.6246555338342323, "ic_low": 0.5593435709283207, "ic_high": 0.6857262211441191, "n": 233, "n_eff": 221.967541284668, "pop_total": 42457.0, "pop_pos": 26521.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 4.0}, {"p": 0.8108654818667823, "ic_low": 0.7246837341393698, "ic_high": 0.8747331398850865, "n": 112, "n_eff": 103.19198639624804, "pop_total": 20763.0, "pop_pos": 16836.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 5.0}], "asist_region": [{"p": 0.9079249719446374, "ic_low": 0.8466567733029209, "ic_high": 0.9462670944923666, "n": 134, "n_eff": 132.86113064029198, "pop_total": 18713.0, "pop_pos": 16990.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Brunca"}, {"p": 0.940455731652982, "ic_low": 0.9193003932704138, "ic_high": 0.9563286703724616, "n": 675, "n_eff": 636.7736654072118, "pop_total": 125688.0, "pop_pos": 118204.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Central"}, {"p": 0.9159974971321304, "ic_low": 0.852225149320049, "ic_high": 0.9537426347506266, "n": 122, "n_eff": 118.95597089652068, "pop_total": 19178.0, "pop_pos": 17567.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Chorotega"}, {"p": 0.932544052863436, "ic_low": 0.8848913967759521, "ic_high": 0.961331516118461, "n": 175, "n_eff": 172.31366289880074, "pop_total": 29056.0, "pop_pos": 27096.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Huetar Caribe"}, {"p": 0.9136376166660104, "ic_low": 0.8526528706256108, "ic_high": 0.9508370463278546, "n": 131, "n_eff": 129.7680209366216, "pop_total": 25393.0, "pop_pos": 23200.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Huetar Norte"}, {"p": 0.949154772084457, "ic_low": 0.8849653790187235, "ic_high": 0.9784006455591584, "n": 97, "n_eff": 94.91273560208889, "pop_total": 15203.0, "pop_pos": 14430.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Pacífico Central"}, {"p": 1.0, "ic_low": 0.9706552963718158, "ic_high": 1.0, "n": 128, "n_eff": 127.06662174403364, "pop_total": 18067.0, "pop_pos": 18067.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Brunca"}, {"p": 0.9815706099271134, "ic_low": 0.967189885885734, "ic_high": 0.989715264994613, "n": 621, "n_eff": 589.4597628315059, "pop_total": 115522.0, "pop_pos": 113393.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Central"}, {"p": 0.9906571822911135, "ic_low": 0.9521105325669788, "ic_high": 0.9982348198210748, "n": 120, "n_eff": 117.88275711325468, "pop_total": 18838.0, "pop_pos": 18662.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Chorotega"}, {"p": 0.977007074746232, "ic_low": 0.9393588152322248, "ic_high": 0.9914935807772346, "n": 157, "n_eff": 154.3851658642511, "pop_total": 26008.0, "pop_pos": 25410.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Huetar Caribe"}, {"p": 0.968179925031237, "ic_low": 0.9205868281693464, "ic_high": 0.9876331772826978, "n": 125, "n_eff": 123.9839737923458, "pop_total": 24010.0, "pop_pos": 23246.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Huetar Norte"}, {"p": 0.9708050942131526, "ic_low": 0.9103147553765748, "ic_high": 0.9909039630965428, "n": 88, "n_eff": 85.71103267714084, "pop_total": 13427.0, "pop_pos": 13035.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Pacífico Central"}, {"p": 0.3185735118653056, "ic_low": 0.2506680852370744, "ic_high": 0.3951732180682669, "n": 158, "n_eff": 156.48059621767194, "pop_total": 22629.0, "pop_pos": 7209.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Brunca"}, {"p": 0.4468122570988961, "ic_low": 0.4185454157879595, "ic_high": 0.4754272065615677, "n": 1267, "n_eff": 1170.0381152730151, "pop_total": 238523.0, "pop_pos": 106575.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Central"}, {"p": 0.2852918905275304, "ic_low": 0.223631877863473, "ic_high": 0.3561537855969031, "n": 179, "n_eff": 175.424549150144, "pop_total": 27733.0, "pop_pos": 7912.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Chorotega"}, {"p": 0.2942548673625026, "ic_low": 0.2347617473620112, "ic_high": 0.3616985121544238, "n": 199, "n_eff": 194.97848742661276, "pop_total": 33437.0, "pop_pos": 9839.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Huetar Caribe"}, {"p": 0.2537726358148893, "ic_low": 0.192988795081818, "ic_high": 0.3259681302453593, "n": 164, "n_eff": 161.9315845289422, "pop_total": 31808.0, "pop_pos": 8072.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Huetar Norte"}, {"p": 0.2666843337308422, "ic_low": 0.200629404782788, "ic_high": 0.3450982809836719, "n": 145, "n_eff": 141.19797772684467, "pop_total": 22641.0, "pop_pos": 6038.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Pacífico Central"}, {"p": 1.0, "ic_low": 0.983059844717326, "ic_high": 1.0, "n": 225, "n_eff": 222.92498827983357, "pop_total": 31743.0, "pop_pos": 31743.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Brunca"}, {"p": 1.0, "ic_low": 0.9964440650480728, "ic_high": 1.0, "n": 1136, "n_eff": 1076.453563107206, "pop_total": 211019.0, "pop_pos": 211019.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Central"}, {"p": 0.992275388529565, "ic_low": 0.9681876425852672, "ic_high": 0.9981590064712664, "n": 209, "n_eff": 203.9197298723993, "pop_total": 32623.0, "pop_pos": 32371.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Chorotega"}, {"p": 1.0, "ic_low": 0.9855931036685932, "ic_high": 1.0, "n": 267, "n_eff": 262.7988180600802, "pop_total": 44523.0, "pop_pos": 44523.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Huetar Caribe"}, {"p": 0.991091064135362, "ic_low": 0.9685641207141108, "ic_high": 0.99751659564475, "n": 232, "n_eff": 230.4865756902276, "pop_total": 44562.0, "pop_pos": 44165.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Huetar Norte"}, {"p": 1.0, "ic_low": 0.9772588136173188, "ic_high": 1.0, "n": 169, "n_eff": 165.07931611622055, "pop_total": 26242.0, "pop_pos": 26242.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Pacífico Central"}, {"p": 0.608957219251337, "ic_low": 0.5079868327279526, "ic_high": 0.7013871401195002, "n": 95, "n_eff": 94.17536801682364, "pop_total": 13464.0, "pop_pos": 8199.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Brunca"}, {"p": 0.6445098145747794, "ic_low": 0.6069059166880905, "ic_high": 0.6804107359849368, "n": 682, "n_eff": 648.1094170899778, "pop_total": 128839.0, "pop_pos": 83038.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Central"}, {"p": 0.5322104172065302, "ic_low": 0.4433670742463271, "ic_high": 0.6190572509935436, "n": 123, "n_eff": 120.10987899550818, "pop_total": 19295.0, "pop_pos": 10269.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Chorotega"}, {"p": 0.5422337194916207, "ic_low": 0.4486743113547554, "ic_high": 0.6329062897248757, "n": 110, "n_eff": 108.55771282768204, "pop_total": 17782.0, "pop_pos": 9642.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Huetar Caribe"}, {"p": 0.5057668421363932, "ic_low": 0.4023326965116115, "ic_high": 0.6087096887037522, "n": 87, "n_eff": 86.34021888415776, "pop_total": 16907.0, "pop_pos": 8551.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Huetar Norte"}, {"p": 0.5519459838206255, "ic_low": 0.4522314634810913, "ic_high": 0.6476513769604538, "n": 98, "n_eff": 95.70557379595562, "pop_total": 15699.0, "pop_pos": 8665.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Pacífico Central"}], "asist_zona": [{"p": 0.9132341094280318, "ic_low": 0.8840873812406832, "ic_high": 0.9355857600778884, "n": 476, "n_eff": 463.3855326165341, "pop_total": 75721.0, "pop_pos": 69151.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "zona_lbl": "Rural"}, {"p": 0.9417560789791124, "ic_low": 0.9235004008775864, "ic_high": 0.9558634747012646, "n": 858, "n_eff": 814.3226070349722, "pop_total": 157510.0, "pop_pos": 148336.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "zona_lbl": "Urbana"}, {"p": 0.9842412071514238, "ic_low": 0.9677016071281722, "ic_high": 0.9923777990295616, "n": 451, "n_eff": 438.9030030207416, "pop_total": 71706.0, "pop_pos": 70576.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "zona_lbl": "Rural"}, {"p": 0.979683143043436, "ic_low": 0.966896020499193, "ic_high": 0.9875943382700996, "n": 788, "n_eff": 751.9872990424316, "pop_total": 144166.0, "pop_pos": 141237.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "zona_lbl": "Urbana"}, {"p": 0.2679101963306686, "ic_low": 0.2337917181948359, "ic_high": 0.3050256025789432, "n": 608, "n_eff": 591.143399992347, "pop_total": 97947.0, "pop_pos": 26241.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "zona_lbl": "Rural"}, {"p": 0.4282414713224112, "ic_low": 0.4025217105247436, "ic_high": 0.4543549027509603, "n": 1504, "n_eff": 1396.6055736371543, "pop_total": 278824.0, "pop_pos": 119404.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "zona_lbl": "Urbana"}, {"p": 0.9965880964167396, "ic_low": 0.9895056482830688, "ic_high": 0.9988960610120604, "n": 819, "n_eff": 795.2492537015338, "pop_total": 131305.0, "pop_pos": 130857.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "zona_lbl": "Rural"}, {"p": 0.9992251558361956, "ic_low": 0.9957636996953866, "ic_high": 0.9998586778662982, "n": 1419, "n_eff": 1352.451019297633, "pop_total": 259407.0, "pop_pos": 259206.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "zona_lbl": "Urbana"}, {"p": 0.505467740332041, "ic_low": 0.4545344123580602, "ic_high": 0.5562878315809109, "n": 377, "n_eff": 367.1353482307864, "pop_total": 60354.0, "pop_pos": 30507.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "zona_lbl": "Rural"}, {"p": 0.6453584995251662, "ic_low": 0.6111260187760822, "ic_high": 0.6781644819762613, "n": 818, "n_eff": 779.038817793677, "pop_total": 151632.0, "pop_pos": 97857.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "zona_lbl": "Urbana"}], "asist_mig": [{"p": 0.9334672201575586, "ic_low": 0.9168367510808758, "ic_high": 0.9469644084175372, "n": 1107, "n_eff": 1059.035810368882, "pop_total": 193198.0, "pop_pos": 180344.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "migrante": 0.0}, {"p": 0.9278095571153798, "ic_low": 0.8847198876800272, "ic_high": 0.9556013385260044, "n": 227, "n_eff": 211.01340175929525, "pop_total": 40033.0, "pop_pos": 37143.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "migrante": 1.0}, {"p": 0.9847252462123348, "ic_low": 0.974905174226603, "ic_high": 0.9907390452564254, "n": 1014, "n_eff": 974.5708117734129, "pop_total": 177286.0, "pop_pos": 174578.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "migrante": 0.0}, {"p": 0.9649873010936608, "ic_low": 0.930578815460957, "ic_high": 0.982659085480142, "n": 225, "n_eff": 209.6091543971792, "pop_total": 38586.0, "pop_pos": 37235.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "migrante": 1.0}, {"p": 0.4022787664355032, "ic_low": 0.3772548097726659, "ic_high": 0.427822275895214, "n": 1551, "n_eff": 1441.2170511441898, "pop_total": 275851.0, "pop_pos": 110969.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "migrante": 0.0}, {"p": 0.3435988902100674, "ic_low": 0.3045415116168324, "ic_high": 0.384893142513902, "n": 561, "n_eff": 533.3443652011878, "pop_total": 100920.0, "pop_pos": 34676.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "migrante": 1.0}, {"p": 0.9990093130724524, "ic_low": 0.9961271039271384, "ic_high": 0.9997471267619872, "n": 1862, "n_eff": 1784.0038989271022, "pop_total": 325027.0, "pop_pos": 324705.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "migrante": 0.0}, {"p": 0.9950216944507878, "ic_low": 0.9806557275337328, "ic_high": 0.998732606735306, "n": 376, "n_eff": 353.09813899409585, "pop_total": 65685.0, "pop_pos": 65358.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "migrante": 1.0}, {"p": 0.624167096128778, "ic_low": 0.5919497361385113, "ic_high": 0.6553218906666136, "n": 937, "n_eff": 893.9531877836883, "pop_total": 164935.0, "pop_pos": 102947.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "migrante": 0.0}, {"p": 0.5402010584259633, "ic_low": 0.4777623469936665, "ic_high": 0.6014027925164029, "n": 258, "n_eff": 245.848984991284, "pop_total": 47051.0, "pop_pos": 25417.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "migrante": 1.0}], "asist_pobre": [{"p": 0.9376813524768188, "ic_low": 0.9201666089313276, "ic_high": 0.9515558164614384, "n": 971, "n_eff": 919.8979775113648, "pop_total": 172661.0, "pop_pos": 161901.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "pobre_monetaria": 0.0}, {"p": 0.920694338622586, "ic_low": 0.8876420589095749, "ic_high": 0.9446301508406906, "n": 362, "n_eff": 350.6993721312804, "pop_total": 60374.0, "pop_pos": 55586.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "pobre_monetaria": 1.0}, {"p": 0.0, "ic_low": 0.0, "ic_high": 0.7934506858870164, "n": 1, "n_eff": 1.0, "pop_total": 196.0, "pop_pos": 0.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "pobre_monetaria": null}, {"p": 0.9798774694492678, "ic_low": 0.9678722369012576, "ic_high": 0.9874548334731278, "n": 870, "n_eff": 828.8072663041024, "pop_total": 152615.0, "pop_pos": 149544.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "pobre_monetaria": 0.0}, {"p": 0.984381175205906, "ic_low": 0.9653815871220964, "ic_high": 0.9930285407152856, "n": 369, "n_eff": 355.6427635601285, "pop_total": 63257.0, "pop_pos": 62269.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "pobre_monetaria": 1.0}, {"p": 0.3991716405919913, "ic_low": 0.3764141936088769, "ic_high": 0.4223730440454349, "n": 1868, "n_eff": 1741.050291308994, "pop_total": 336086.0, "pop_pos": 134156.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "pobre_monetaria": 0.0}, {"p": 0.2823890868870591, "ic_low": 0.228783488009028, "ic_high": 0.3429691998254404, "n": 244, "n_eff": 235.8722633827188, "pop_total": 40685.0, "pop_pos": 11489.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "pobre_monetaria": 1.0}, {"p": 0.9992813141683778, "ic_low": 0.9960787541686064, "ic_high": 0.9998686242583704, "n": 1540, "n_eff": 1462.915965953503, "pop_total": 272720.0, "pop_pos": 272524.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "pobre_monetaria": 0.0}, {"p": 0.9961607566614684, "ic_low": 0.9879286176917252, "ic_high": 0.9987858471538548, "n": 698, "n_eff": 676.0103833426789, "pop_total": 117992.0, "pop_pos": 117539.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "pobre_monetaria": 1.0}, {"p": 0.6170301729008928, "ic_low": 0.5855559348660232, "ic_high": 0.6475528539850296, "n": 989, "n_eff": 941.0659171450076, "pop_total": 176980.0, "pop_pos": 109202.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "pobre_monetaria": 0.0}, {"p": 0.5473918756784552, "ic_low": 0.478023823323441, "ic_high": 0.6149666110751055, "n": 206, "n_eff": 199.1945279781322, "pop_total": 35006.0, "pop_pos": 19162.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "pobre_monetaria": 1.0}], "asist_discap": [{"p": 0.9312803716214708, "ic_low": 0.9156834621677412, "ic_high": 0.9441680725315286, "n": 1281, "n_eff": 1219.2063529030245, "pop_total": 224099.0, "pop_pos": 208699.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "discap": 0.0}, {"p": 0.9623302671922908, "ic_low": 0.869498537698617, "ic_high": 0.9898940077279574, "n": 53, "n_eff": 50.581014247502594, "pop_total": 9132.0, "pop_pos": 8788.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "discap": 1.0}, {"p": 0.9839628145597972, "ic_low": 0.9748636686122673, "ic_high": 0.9898025986740924, "n": 1189, "n_eff": 1136.9482546192114, "pop_total": 207393.0, "pop_pos": 204067.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "discap": 0.0}, {"p": 0.9135511263120653, "ic_low": 0.7993128792686022, "ic_high": 0.9655625729715116, "n": 50, "n_eff": 47.21820082898818, "pop_total": 8479.0, "pop_pos": 7746.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "discap": 1.0}, {"p": 0.3912911638061738, "ic_low": 0.369592495985204, "ic_high": 0.413428301473675, "n": 2034, "n_eff": 1900.9669181279596, "pop_total": 362758.0, "pop_pos": 141944.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "discap": 0.0}, {"p": 0.2641118960964818, "ic_low": 0.1769017755254297, "ic_high": 0.3747413101330878, "n": 78, "n_eff": 73.54383379356554, "pop_total": 14013.0, "pop_pos": 3701.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "discap": 1.0}, {"p": 0.9982552637804588, "ic_low": 0.99528477950088, "ic_high": 0.9993556204470488, "n": 2135, "n_eff": 2043.1066401147443, "pop_total": 371976.0, "pop_pos": 371327.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "discap": 0.0}, {"p": 1.0, "ic_low": 0.9609628948314436, "ic_high": 1.0, "n": 103, "n_eff": 94.5638611962364, "pop_total": 18736.0, "pop_pos": 18736.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "discap": 1.0}, {"p": 0.603678286323808, "ic_low": 0.5744996867823082, "ic_high": 0.6321371932560758, "n": 1157, "n_eff": 1102.952922680444, "pop_total": 205313.0, "pop_pos": 123943.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "discap": 0.0}, {"p": 0.6625206054248464, "ic_low": 0.5005354973548769, "ic_high": 0.7936309393545438, "n": 38, "n_eff": 36.6003731634645, "pop_total": 6673.0, "pop_pos": 4421.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "discap": 1.0}], "asist_sexo": [{"p": 0.9165673942749027, "ic_low": 0.892125731702716, "ic_high": 0.9358692680488098, "n": 653, "n_eff": 618.8403503037553, "pop_total": 114164.0, "pop_pos": 104639.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Hombre"}, {"p": 0.9477689032225554, "ic_low": 0.9278991094448958, "ic_high": 0.962384892574982, "n": 681, "n_eff": 650.9548245783805, "pop_total": 119067.0, "pop_pos": 112848.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Mujer"}, {"p": 0.9818764750411898, "ic_low": 0.9678402371839472, "ic_high": 0.9898507908634736, "n": 638, "n_eff": 606.8917798526747, "pop_total": 112285.0, "pop_pos": 110250.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "sexo_lbl": "Hombre"}, {"p": 0.980460868641818, "ic_low": 0.9655962253850044, "ic_high": 0.9889763517415237, "n": 601, "n_eff": 577.5490240552074, "pop_total": 103587.0, "pop_pos": 101563.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "sexo_lbl": "Mujer"}, {"p": 0.3543707320087754, "ic_low": 0.3252536457896833, "ic_high": 0.3846086418808316, "n": 1083, "n_eff": 994.4044927083606, "pop_total": 194178.0, "pop_pos": 68811.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Hombre"}, {"p": 0.4207937872755253, "ic_low": 0.3902720278654535, "ic_high": 0.451933289849752, "n": 1029, "n_eff": 981.2520967807682, "pop_total": 182593.0, "pop_pos": 76834.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Mujer"}, {"p": 1.0, "ic_low": 0.9963625297950888, "ic_high": 1.0, "n": 1102, "n_eff": 1052.2383467757884, "pop_total": 193536.0, "pop_pos": 193536.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "sexo_lbl": "Hombre"}, {"p": 0.99670852436402, "ic_low": 0.9911285212196408, "ic_high": 0.9987831134497694, "n": 1136, "n_eff": 1084.8090192023687, "pop_total": 197176.0, "pop_pos": 196527.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "sexo_lbl": "Mujer"}, {"p": 0.5592549496659086, "ic_low": 0.5196243667075414, "ic_high": 0.5981445277894315, "n": 643, "n_eff": 610.5282152354245, "pop_total": 113442.0, "pop_pos": 63443.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Hombre"}, {"p": 0.6588021594414678, "ic_low": 0.6173855746383472, "ic_high": 0.6979290637521518, "n": 552, "n_eff": 529.0118882932969, "pop_total": 98544.0, "pop_pos": 64921.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Mujer"}], "rezago_grupo": [{"p": 0.24849921351462, "ic_low": 0.2254526116742475, "ic_high": 0.273071135147258, "n": 1327, "n_eff": 1262.9485233297678, "pop_total": 232045.0, "pop_pos": 57663.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.1210928799465439, "ic_low": 0.1037129264268682, "ic_high": 0.1409273785156703, "n": 1237, "n_eff": 1182.1674117178152, "pop_total": 215504.0, "pop_pos": 26096.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.0600037676158467, "ic_low": 0.0500008605534219, "ic_high": 0.0718564410138127, "n": 1913, "n_eff": 1823.6622406552945, "pop_total": 334429.0, "pop_pos": 20067.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "rezago_region": [{"p": 0.2628716070659199, "ic_low": 0.1952185026237658, "ic_high": 0.3439498506560897, "n": 133, "n_eff": 131.86200734940903, "pop_total": 18568.0, "pop_pos": 4881.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Brunca"}, {"p": 0.2223299415110968, "ic_low": 0.1916424574312968, "ic_high": 0.2563729031185472, "n": 670, "n_eff": 631.9298067262732, "pop_total": 124810.0, "pop_pos": 27749.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Central"}, {"p": 0.2734383147356345, "ic_low": 0.201372810456464, "ic_high": 0.3596788288281832, "n": 122, "n_eff": 118.95597089652068, "pop_total": 19178.0, "pop_pos": 5244.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Chorotega"}, {"p": 0.2585696585903084, "ic_low": 0.1989622714454192, "ic_high": 0.3287069094939262, "n": 175, "n_eff": 172.31366289880074, "pop_total": 29056.0, "pop_pos": 7513.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Huetar Caribe"}, {"p": 0.3296183987713149, "ic_low": 0.2546597589647613, "ic_high": 0.4143744557542211, "n": 131, "n_eff": 129.7680209366216, "pop_total": 25393.0, "pop_pos": 8370.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Huetar Norte"}, {"p": 0.2597074468085106, "ic_low": 0.1817180378951059, "ic_high": 0.3565824082679626, "n": 96, "n_eff": 93.9130492545964, "pop_total": 15040.0, "pop_pos": 3906.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Pacífico Central"}, {"p": 0.0772125975535506, "ic_low": 0.042240302235646, "ic_high": 0.1369980349164971, "n": 128, "n_eff": 127.06662174403364, "pop_total": 18067.0, "pop_pos": 1395.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Brunca"}, {"p": 0.1214751482778953, "ic_low": 0.0975072486062203, "ic_high": 0.1503530069983298, "n": 620, "n_eff": 588.4598693122091, "pop_total": 115324.0, "pop_pos": 14009.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Central"}, {"p": 0.1430790657810156, "ic_low": 0.0909518583036974, "ic_high": 0.2179200324013368, "n": 119, "n_eff": 116.88686840634774, "pop_total": 18668.0, "pop_pos": 2671.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Chorotega"}, {"p": 0.1318440479852353, "ic_low": 0.0873144348883882, "ic_high": 0.1942499942756795, "n": 157, "n_eff": 154.3851658642511, "pop_total": 26008.0, "pop_pos": 3429.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Huetar Caribe"}, {"p": 0.1685964181591003, "ic_low": 0.1128924744407028, "ic_high": 0.244219296453175, "n": 125, "n_eff": 123.9839737923458, "pop_total": 24010.0, "pop_pos": 4048.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Huetar Norte"}, {"p": 0.0405153794592984, "ic_low": 0.0148820434851934, "ic_high": 0.1055689754786758, "n": 88, "n_eff": 85.71103267714084, "pop_total": 13427.0, "pop_pos": 544.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "region_lbl": "Pacífico Central"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Brunca"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Central"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Chorotega"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Huetar Caribe"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Huetar Norte"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Pacífico Central"}, {"p": 0.0359388017874725, "ic_low": 0.0171744185260619, "ic_high": 0.0736680278371751, "n": 186, "n_eff": 184.1560907431353, "pop_total": 26406.0, "pop_pos": 949.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Brunca"}, {"p": 0.0506563808830102, "ic_low": 0.03826470344727, "ic_high": 0.0667823350806833, "n": 975, "n_eff": 920.6401058814378, "pop_total": 181221.0, "pop_pos": 9180.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Central"}, {"p": 0.0627933039153883, "ic_low": 0.0356124077776186, "ic_high": 0.1083881962294974, "n": 183, "n_eff": 178.57538385790556, "pop_total": 28554.0, "pop_pos": 1793.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Chorotega"}, {"p": 0.0799251607462843, "ic_low": 0.0511332172513383, "ic_high": 0.1228305384697786, "n": 228, "n_eff": 224.83430825759237, "pop_total": 37948.0, "pop_pos": 3033.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Huetar Caribe"}, {"p": 0.1001877363230122, "ic_low": 0.0655168990243138, "ic_high": 0.1502559160049002, "n": 197, "n_eff": 195.65561166456345, "pop_total": 37819.0, "pop_pos": 3789.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Huetar Norte"}, {"p": 0.0588496952982518, "ic_low": 0.0304629213589327, "ic_high": 0.1106691771200212, "n": 144, "n_eff": 140.79916405649067, "pop_total": 22481.0, "pop_pos": 1323.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "region_lbl": "Pacífico Central"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Brunca"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Central"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Chorotega"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Huetar Caribe"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Huetar Norte"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Pacífico Central"}], "rezago_quintil": [{"p": 0.3429380650000647, "ic_low": 0.3006991277237617, "ic_high": 0.3878197847011075, "n": 467, "n_eff": 452.7583360904165, "pop_total": 77323.0, "pop_pos": 26517.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 1.0}, {"p": 0.2472999349381912, "ic_low": 0.2036548725692827, "ic_high": 0.2968122952491797, "n": 343, "n_eff": 327.05596791697235, "pop_total": 61480.0, "pop_pos": 15204.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 2.0}, {"p": 0.2312570462232243, "ic_low": 0.1808901550100621, "ic_high": 0.2906714169184487, "n": 241, "n_eff": 224.369059693013, "pop_total": 42576.0, "pop_pos": 9846.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 3.0}, {"p": 0.1270109795336186, "ic_low": 0.08384244218527, "ic_high": 0.1878486880653021, "n": 166, "n_eff": 158.34180943578505, "pop_total": 30147.0, "pop_pos": 3829.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 4.0}, {"p": 0.1019042464203119, "ic_low": 0.0570766428879367, "ic_high": 0.1753903394760885, "n": 109, "n_eff": 102.88213142281094, "pop_total": 20323.0, "pop_pos": 2071.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 5.0}, {"p": 1.0, "ic_low": 0.2065493141129835, "ic_high": 1.0, "n": 1, "n_eff": 1.0, "pop_total": 196.0, "pop_pos": 196.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": null}, {"p": 0.1565891472868217, "ic_low": 0.1259642702848904, "ic_high": 0.1930154162765742, "n": 467, "n_eff": 450.9454799538741, "pop_total": 79335.0, "pop_pos": 12423.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 1.0}, {"p": 0.1341113238109262, "ic_low": 0.100064831221014, "ic_high": 0.1774576759043825, "n": 310, "n_eff": 298.43112588673995, "pop_total": 54328.0, "pop_pos": 7286.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 2.0}, {"p": 0.0958735223729059, "ic_low": 0.0639699580630489, "ic_high": 0.1412865940948018, "n": 237, "n_eff": 225.9870874421456, "pop_total": 41367.0, "pop_pos": 3966.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 3.0}, {"p": 0.065360239511645, "ic_low": 0.0348390355195565, "ic_high": 0.119314502603511, "n": 144, "n_eff": 138.66240610472082, "pop_total": 25719.0, "pop_pos": 1681.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 4.0}, {"p": 0.050152490681125, "ic_low": 0.018587948276845, "ic_high": 0.1283096717880182, "n": 79, "n_eff": 70.33638271827101, "pop_total": 14755.0, "pop_pos": 740.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "quintil": 5.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 1.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 2.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 3.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 4.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 5.0}, {"p": 0.0960762857589495, "ic_low": 0.0768678732018515, "ic_high": 0.1194634949558883, "n": 762, "n_eff": 738.7916249021482, "pop_total": 127940.0, "pop_pos": 12292.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 1.0}, {"p": 0.0547463030195696, "ic_low": 0.0377423659834707, "ic_high": 0.0787837516013914, "n": 507, "n_eff": 482.5226377843365, "pop_total": 90344.0, "pop_pos": 4946.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 2.0}, {"p": 0.0248202640229218, "ic_low": 0.0123673323002225, "ic_high": 0.049187823812756, "n": 318, "n_eff": 302.5690108650076, "pop_total": 56889.0, "pop_pos": 1412.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 3.0}, {"p": 0.0215662719524054, "ic_low": 0.0084340033472882, "ic_high": 0.0540320686205683, "n": 196, "n_eff": 186.2825021693868, "pop_total": 34962.0, "pop_pos": 754.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 4.0}, {"p": 0.0272906890590269, "ic_low": 0.0096532678521373, "ic_high": 0.0747219237485155, "n": 130, "n_eff": 118.05588446734892, "pop_total": 24294.0, "pop_pos": 663.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "quintil": 5.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 1.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 2.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 3.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 4.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 5.0}], "rezago_sexo": [{"p": 0.2782617878451872, "ic_low": 0.2443280407466671, "ic_high": 0.3149442352368511, "n": 650, "n_eff": 615.9410721861569, "pop_total": 113634.0, "pop_pos": 31620.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Hombre"}, {"p": 0.2199373369028215, "ic_low": 0.1897262620343513, "ic_high": 0.2534542951749113, "n": 677, "n_eff": 647.0279505772629, "pop_total": 118411.0, "pop_pos": 26043.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Mujer"}, {"p": 0.1411849853016074, "ic_low": 0.1156953284594935, "ic_high": 0.1712032170645624, "n": 636, "n_eff": 604.9032917964067, "pop_total": 111917.0, "pop_pos": 15801.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "sexo_lbl": "Hombre"}, {"p": 0.0993850579705947, "ic_low": 0.0775695150348785, "ic_high": 0.1264946187843237, "n": 601, "n_eff": 577.5490240552074, "pop_total": 103587.0, "pop_pos": 10295.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "sexo_lbl": "Mujer"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Hombre"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Mujer"}, {"p": 0.0664274403790693, "ic_low": 0.0519403616338117, "ic_high": 0.0845946709557623, "n": 946, "n_eff": 901.3120307793672, "pop_total": 166091.0, "pop_pos": 11033.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "sexo_lbl": "Hombre"}, {"p": 0.0536658389668405, "ic_low": 0.0408863288876245, "ic_high": 0.0701475961161612, "n": 967, "n_eff": 922.3929443211882, "pop_total": 168338.0, "pop_pos": 9034.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "sexo_lbl": "Mujer"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Hombre"}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Mujer"}], "escol_grupo": [{"mean": 8.77974626014552, "ic_low": 8.700554946680874, "ic_high": 8.858937573610167, "se": 0.040404473768626, "n": 1334, "n_eff": 1269.7720193987186, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"mean": 11.304564310947498, "ic_low": 11.11863514658355, "ic_high": 11.490493475311446, "se": 0.0948635616167619, "n": 2112, "n_eff": 1974.5105898204931, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"mean": 10.757969865934545, "ic_low": 10.5871728515625, "ic_high": 10.928766880306586, "se": 0.0871429350649143, "n": 1195, "n_eff": 1139.538296095232, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "escol_region": [{"mean": 8.72698124298616, "ic_low": 8.474516527375835, "ic_high": 8.979445958596484, "se": 0.1288108951991949, "n": 134, "n_eff": 132.86113064029198, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Brunca"}, {"mean": 8.840310928648718, "ic_low": 8.729239989581032, "ic_high": 8.951381867716403, "se": 0.0566698877399034, "n": 675, "n_eff": 636.7736654072118, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Central"}, {"mean": 8.802482010637188, "ic_low": 8.568375149015804, "ic_high": 9.036588872258571, "se": 0.1194444710613313, "n": 122, "n_eff": 118.95597089652068, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Chorotega"}, {"mean": 8.745560297356828, "ic_low": 8.534146695476554, "ic_high": 8.956973899237102, "se": 0.1078660645692645, "n": 175, "n_eff": 172.31366289880074, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Huetar Caribe"}, {"mean": 8.582404599692829, "ic_low": 8.323153097111819, "ic_high": 8.84165610227384, "se": 0.1322736052381283, "n": 131, "n_eff": 129.7680209366216, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Huetar Norte"}, {"mean": 8.710254555022034, "ic_low": 8.400514275162504, "ic_high": 9.019994834881564, "se": 0.1559974181543266, "n": 97, "n_eff": 94.91273560208889, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "region_lbl": "Pacífico Central"}, {"mean": 12.588227495691369, "ic_low": 10.880659874713306, "ic_high": 14.295795116669431, "se": 0.8712239781294359, "n": 158, "n_eff": 156.48059621767194, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Brunca"}, {"mean": 11.390989548177744, "ic_low": 11.24090106426814, "ic_high": 11.541078032087349, "se": 0.0765771641583626, "n": 1267, "n_eff": 1170.0381152730151, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Central"}, {"mean": 11.245014964122165, "ic_low": 10.834995308474053, "ic_high": 11.655034619770277, "se": 0.2091975457466224, "n": 179, "n_eff": 175.424549150144, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Chorotega"}, {"mean": 10.750186918682896, "ic_low": 10.394238643573278, "ic_high": 11.106135193792516, "se": 0.1816095997836307, "n": 199, "n_eff": 194.97848742661276, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Huetar Caribe"}, {"mean": 10.837242203219317, "ic_low": 9.718377178287398, "ic_high": 11.956107228151236, "se": 0.5708599917423713, "n": 164, "n_eff": 161.9315845289422, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Huetar Norte"}, {"mean": 10.65929066737335, "ic_low": 10.171250968311854, "ic_high": 11.147330366434844, "se": 0.249004421773884, "n": 145, "n_eff": 141.19797772684467, "grupo_edad_lbl": "Juventud temprana (21-25)", "region_lbl": "Pacífico Central"}, {"mean": 11.681892453951278, "ic_low": 9.746317262200126, "ic_high": 13.61746764570243, "se": 0.9747313188242904, "n": 95, "n_eff": 94.17536801682364, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Brunca"}, {"mean": 10.799462895551812, "ic_low": 10.661203380612978, "ic_high": 10.937722410490649, "se": 0.0705418650127971, "n": 682, "n_eff": 648.1094170899778, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Central"}, {"mean": 10.781497797356828, "ic_low": 10.579998638649457, "ic_high": 10.982996956064198, "se": 0.1028075822486123, "n": 123, "n_eff": 120.10987899550818, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Chorotega"}, {"mean": 10.386964345967831, "ic_low": 10.022905109294303, "ic_high": 10.751023582641364, "se": 0.1857479215188007, "n": 110, "n_eff": 108.55771282768204, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Huetar Caribe"}, {"mean": 10.270302241675044, "ic_low": 9.865014162689064, "ic_high": 10.675590320661026, "se": 0.2038515072647282, "n": 87, "n_eff": 86.34021888415776, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Huetar Norte"}, {"mean": 10.541563156888971, "ic_low": 10.203692199494888, "ic_high": 10.879434114283058, "se": 0.1701837258547952, "n": 98, "n_eff": 95.70557379595562, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "region_lbl": "Pacífico Central"}], "escol_quintil": [{"mean": 8.554931826082479, "ic_low": 8.413694370287837, "ic_high": 8.69616928187712, "se": 0.0720612505101306, "n": 469, "n_eff": 454.7511440066175, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 1.0}, {"mean": 8.749140391851563, "ic_low": 8.606206032557571, "ic_high": 8.892074751145556, "se": 0.0729270335099042, "n": 344, "n_eff": 328.05191720048083, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 2.0}, {"mean": 8.901033284351456, "ic_low": 8.702620792804167, "ic_high": 9.099445775898744, "se": 0.1012327231277613, "n": 243, "n_eff": 226.2743411266777, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 3.0}, {"mean": 8.984203971947302, "ic_low": 8.762273138226908, "ic_high": 9.206134805667697, "se": 0.1132320977793644, "n": 168, "n_eff": 160.25740827882152, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 4.0}, {"mean": 9.19573881808788, "ic_low": 9.00668675654931, "ic_high": 9.38479087962645, "se": 0.0964569057785617, "n": 109, "n_eff": 102.88213142281094, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": 5.0}, {"mean": 6.0, "ic_low": null, "ic_high": null, "se": null, "n": 1, "n_eff": 1.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "quintil": null}, {"mean": 10.254049139025176, "ic_low": 9.664062685857632, "ic_high": 10.84403559219272, "se": 0.301019027566644, "n": 321, "n_eff": 310.8170592109556, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 1.0}, {"mean": 10.590215073577802, "ic_low": 10.09136941302638, "ic_high": 11.089060734129225, "se": 0.2545177687366079, "n": 435, "n_eff": 421.8163965344699, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 2.0}, {"mean": 11.10063525620632, "ic_low": 10.70678808454734, "ic_high": 11.494482427865297, "se": 0.2009461267901204, "n": 553, "n_eff": 527.6849346267468, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 3.0}, {"mean": 11.767872913074562, "ic_low": 11.562131515007906, "ic_high": 11.97361431114122, "se": 0.104972029855471, "n": 513, "n_eff": 489.3389671617469, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 4.0}, {"mean": 12.847018088041697, "ic_low": 12.558480157033484, "ic_high": 13.135556019049906, "se": 0.1472159351148993, "n": 290, "n_eff": 240.90700300004224, "grupo_edad_lbl": "Juventud temprana (21-25)", "quintil": 5.0}, {"mean": 10.232640805422472, "ic_low": 10.00856149233892, "ic_high": 10.456720118506023, "se": 0.1143282808614881, "n": 270, "n_eff": 261.21572260903525, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 1.0}, {"mean": 10.636666415776006, "ic_low": 10.04384802340326, "ic_high": 11.229484808148753, "se": 0.3024639210571659, "n": 300, "n_eff": 287.93811178131307, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 2.0}, {"mean": 10.774026902978402, "ic_low": 10.568090057046977, "ic_high": 10.97996374890983, "se": 0.1050717499861238, "n": 280, "n_eff": 267.3495905912671, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 3.0}, {"mean": 11.094589820288762, "ic_low": 10.918591999767724, "ic_high": 11.2705876408098, "se": 0.089796456346849, "n": 233, "n_eff": 221.967541284668, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 4.0}, {"mean": 11.487164667918892, "ic_low": 11.27048953394706, "ic_high": 11.703839801890728, "se": 0.1105505690442544, "n": 112, "n_eff": 103.19198639624804, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "quintil": 5.0}], "tic_total": [{"TIC": "Celular", "p": 0.8959212416315033, "ic_low": 0.8889032483629132, "ic_high": 0.9025445120253636, "n": 8118, "n_eff": 7702.401304318171, "pop_total": 1428572.0, "pop_pos": 1279888.0}, {"TIC": "Computadora portátil", "p": 0.3953430418627832, "ic_low": 0.3844789666786828, "ic_high": 0.4063114572313258, "n": 8118, "n_eff": 7702.401304318171, "pop_total": 1428572.0, "pop_pos": 564776.0}, {"TIC": "Tableta", "p": 0.1221527511388995, "ic_low": 0.1150274908572174, "ic_high": 0.1296547150085596, "n": 8118, "n_eff": 7702.401304318171, "pop_total": 1428572.0, "pop_pos": 174504.0}, {"TIC": "Computadora escritorio", "p": 0.1520210391915843, "ic_low": 0.1441763776600943, "ic_high": 0.1602126264277671, "n": 8118, "n_eff": 7702.401304318171, "pop_total": 1428572.0, "pop_pos": 217173.0}, {"TIC": "Internet", "p": 0.9045018381992648, "ic_low": 0.8977352115904254, "ic_high": 0.9108651873083932, "n": 8118, "n_eff": 7702.401304318171, "pop_total": 1428572.0, "pop_pos": 1292146.0}], "internet_grupo": [{"p": 0.9727223225042984, "ic_low": 0.9622376214481566, "ic_high": 0.9803553839233012, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 226869.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.9313018825970946, "ic_low": 0.9154565011273254, "ic_high": 0.944357983348748, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 201042.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.97229086102699, "ic_low": 0.9640830933710652, "ic_high": 0.9786644901147146, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 366331.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.7439802207252401, "ic_low": 0.7250498305788463, "ic_high": 0.7620350186328702, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 290682.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.9775268178087232, "ic_low": 0.9671828164774364, "ic_high": 0.9846620871304564, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 207222.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "internet_quintil": [{"p": 0.8336287611342447, "ic_low": 0.8179887983600534, "ic_high": 0.84817424727518, "n": 2415, "n_eff": 2338.138461841378, "pop_total": 403934.0, "pop_pos": 336731.0, "quintil": 1.0}, {"p": 0.8998969163931649, "ic_low": 0.8855380462523221, "ic_high": 0.9126322289144168, "n": 1969, "n_eff": 1888.5306021177607, "pop_total": 348261.0, "pop_pos": 313399.0, "quintil": 2.0}, {"p": 0.9337265160841408, "ic_low": 0.9204950381099742, "ic_high": 0.9448878083159686, "n": 1689, "n_eff": 1605.8136746151476, "pop_total": 298928.0, "pop_pos": 279117.0, "quintil": 3.0}, {"p": 0.956168428313656, "ic_low": 0.9433169347206932, "ic_high": 0.9662105316759844, "n": 1303, "n_eff": 1243.6550380178592, "pop_total": 237751.0, "pop_pos": 227330.0, "quintil": 4.0}, {"p": 0.9704018580378776, "ic_low": 0.9543965483074393, "ic_high": 0.9809022357488584, "n": 741, "n_eff": 652.671414849704, "pop_total": 139502.0, "pop_pos": 135373.0, "quintil": 5.0}, {"p": 1.0, "ic_low": 0.2065493141129835, "ic_high": 1.0, "n": 1, "n_eff": 1.0, "pop_total": 196.0, "pop_pos": 196.0, "quintil": null}], "internet_region": [{"p": 0.8902557926129846, "ic_low": 0.8655691756020201, "ic_high": 0.910875793342534, "n": 740, "n_eff": 733.455328248261, "pop_total": 104616.0, "pop_pos": 93135.0, "region_lbl": "Brunca"}, {"p": 0.9179822618842812, "ic_low": 0.9092088636605642, "ic_high": 0.925976885742626, "n": 4381, "n_eff": 4119.719153315736, "pop_total": 819591.0, "pop_pos": 752370.0, "region_lbl": "Central"}, {"p": 0.8596292928348644, "ic_low": 0.8326668544927256, "ic_high": 0.8828584553512592, "n": 753, "n_eff": 736.2598280062023, "pop_total": 117667.0, "pop_pos": 101150.0, "region_lbl": "Chorotega"}, {"p": 0.8832606129729587, "ic_low": 0.8605377190787756, "ic_high": 0.9026998305954846, "n": 908, "n_eff": 892.8851018340805, "pop_total": 150806.0, "pop_pos": 133201.0, "region_lbl": "Huetar Caribe"}, {"p": 0.915215867675918, "ic_low": 0.8928130650852081, "ic_high": 0.9332862103227754, "n": 739, "n_eff": 732.4767902135236, "pop_total": 142680.0, "pop_pos": 130583.0, "region_lbl": "Huetar Norte"}, {"p": 0.8765716860490066, "ic_low": 0.8473664642778485, "ic_high": 0.9008426394338164, "n": 597, "n_eff": 582.5006344939442, "pop_total": 93212.0, "pop_pos": 81707.0, "region_lbl": "Pacífico Central"}], "internet_zona": [{"p": 0.874089599641217, "ic_low": 0.8609295649690023, "ic_high": 0.8861689732141672, "n": 2731, "n_eff": 2655.733861441013, "pop_total": 437033.0, "pop_pos": 382006.0, "zona_lbl": "Rural"}, {"p": 0.9179064061020292, "ic_low": 0.910048666583758, "ic_high": 0.92513419775597, "n": 5387, "n_eff": 5092.99383004377, "pop_total": 991539.0, "pop_pos": 910140.0, "zona_lbl": "Urbana"}], "idxdig_grupo": [{"mean": 2.660508251476005, "ic_low": 2.6099537995610818, "ic_high": 2.711062703390928, "se": 0.0257935616536489, "n": 1334, "n_eff": 1269.7720193987186, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"mean": 2.4963960124518234, "ic_low": 2.4397509571578158, "ic_high": 2.5530410677458315, "se": 0.0289010694559437, "n": 1239, "n_eff": 1184.155441732703, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"mean": 2.7885744921981788, "ic_low": 2.7464519618387, "ic_high": 2.8306970225576578, "se": 0.0214914818117968, "n": 2112, "n_eff": 1974.5105898204931, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"mean": 1.8779177501586848, "ic_low": 1.8261783687631343, "ic_high": 1.9296571315542344, "se": 0.0263981286196842, "n": 2238, "n_eff": 2136.9723378197623, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"mean": 2.7581679922259017, "ic_low": 2.706989281671484, "ic_high": 2.8093467027803194, "se": 0.026112066811864, "n": 1195, "n_eff": 1139.538296095232, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "idxdig_quintil": [{"mean": 1.9621967945258385, "ic_low": 1.9233890282398167, "ic_high": 2.00100456081186, "se": 0.019800244576352, "n": 2415, "n_eff": 2338.138461841378, "quintil": 1.0}, {"mean": 2.2726374759160515, "ic_low": 2.229465284101312, "ic_high": 2.3158096677307918, "se": 0.0220270332110542, "n": 1969, "n_eff": 1888.5306021177607, "quintil": 2.0}, {"mean": 2.5799222555264145, "ic_low": 2.530569336589672, "ic_high": 2.629275174463157, "se": 0.0251805233597368, "n": 1689, "n_eff": 1605.8136746151476, "quintil": 3.0}, {"mean": 2.952929745826516, "ic_low": 2.895335211830662, "ic_high": 3.010524279822369, "se": 0.0293855062662982, "n": 1303, "n_eff": 1243.6550380178592, "quintil": 4.0}, {"mean": 3.374525096414388, "ic_low": 3.2918254455398825, "ic_high": 3.457224747288894, "se": 0.042194474725126, "n": 741, "n_eff": 652.671414849704, "quintil": 5.0}, {"mean": 2.0, "ic_low": null, "ic_high": null, "se": null, "n": 1, "n_eff": 1.0, "quintil": null}], "ipm_educ": [{"p": 0.1146008110369686, "ic_low": 0.0982245500027437, "ic_high": 0.1333037641937592, "n": 1333, "n_eff": 1268.7765226919048, "pop_total": 233035.0, "pop_pos": 26706.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "indicador": "IPM_E1"}, {"p": 0.0453787429587903, "ic_low": 0.0349224615750984, "ic_high": 0.0587751142365372, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 9796.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "indicador": "IPM_E1"}, {"p": 0.0195291038853839, "ic_low": 0.0142935543329172, "ic_high": 0.0266305591205165, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 7358.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "indicador": "IPM_E1"}, {"p": 0.0268637768996089, "ic_low": 0.0208113207160956, "ic_high": 0.0346142166474999, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 10496.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "indicador": "IPM_E1"}, {"p": 0.0290773919032388, "ic_low": 0.0207926994940848, "ic_high": 0.04052643946538, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 6164.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "indicador": "IPM_E1"}, {"p": 0.0804128135258652, "ic_low": 0.0666855091176425, "ic_high": 0.0966732062992335, "n": 1333, "n_eff": 1268.7765226919048, "pop_total": 233035.0, "pop_pos": 18739.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "indicador": "IPM_E2"}, {"p": 0.0586551289653127, "ic_low": 0.0466443609839413, "ic_high": 0.0735201268688993, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 12662.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "indicador": "IPM_E2"}, {"p": 0.0205111327570327, "ic_low": 0.0151273257729791, "ic_high": 0.0277570317208474, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 7728.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "indicador": "IPM_E2"}, {"p": 0.0509710477282499, "ic_low": 0.0424253472887716, "ic_high": 0.0611282159515538, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 19915.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "indicador": "IPM_E2"}, {"p": 0.0623343050956195, "ic_low": 0.0497145111388606, "ic_high": 0.0778949850347982, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 13214.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "indicador": "IPM_E2"}, {"p": 0.0659085545089793, "ic_low": 0.0535238915172443, "ic_high": 0.0809138694782512, "n": 1333, "n_eff": 1268.7765226919048, "pop_total": 233035.0, "pop_pos": 15359.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "indicador": "IPM_E3"}, {"p": 0.0547176104358138, "ic_low": 0.0431449834200191, "ic_high": 0.0691699317757998, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 11812.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "indicador": "IPM_E3"}, {"p": 0.2024280000318495, "ic_low": 0.1852905435868353, "ic_high": 0.220721075454481, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 76269.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "indicador": "IPM_E3"}, {"p": 0.064587215135445, "ic_low": 0.0549272575856278, "ic_high": 0.0758097749894681, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 25235.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "indicador": "IPM_E3"}, {"p": 0.1866727048012604, "ic_low": 0.1651155800745235, "ic_high": 0.2103352260922878, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 39572.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "indicador": "IPM_E3"}, {"p": 0.2819919754543309, "ic_low": 0.2579193724736875, "ic_high": 0.3073807139326417, "n": 1333, "n_eff": 1268.7765226919048, "pop_total": 233035.0, "pop_pos": 65714.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "indicador": "IPM_E4"}, {"p": 0.2964766157723095, "ic_low": 0.2711562055219012, "ic_high": 0.3231132360236889, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 64001.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)", "indicador": "IPM_E4"}, {"p": 0.2296010043235811, "ic_low": 0.211585814347582, "ic_high": 0.248666287087093, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 86507.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "indicador": "IPM_E4"}, {"p": 0.2804700137185446, "ic_low": 0.2618304064750265, "ic_high": 0.2998974665980434, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 109583.0, "grupo_edad_lbl": "Niñez intermedia (6-11)", "indicador": "IPM_E4"}, {"p": 0.2645174681346881, "ic_low": 0.2397301885494042, "ic_high": 0.2908870679363616, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 56074.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "indicador": "IPM_E4"}], "ipm_dim": [{"p": 0.1327528605913289, "ic_low": 0.1253575960284156, "ic_high": 0.1405143080815185, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 189621.0, "indicador": "IPM_VUI1"}, {"p": 0.0881112536194951, "ic_low": 0.0819841781429475, "ic_high": 0.0946490242674324, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 125856.0, "indicador": "IPM_VUI2"}, {"p": 0.0987548096579612, "ic_low": 0.092290602297079, "ic_high": 0.105619099477189, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 141059.0, "indicador": "IPM_VUI3"}, {"p": 0.009687225212409, "ic_low": 0.007731092764803, "ic_high": 0.0121322496019423, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 13837.0, "indicador": "IPM_VUI4"}, {"p": 0.2588324082734518, "ic_low": 0.2491722746813835, "ic_high": 0.2687330105995851, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 369710.0, "indicador": "IPM_S1"}, {"p": 0.0669816630915109, "ic_low": 0.0616115252174484, "ic_high": 0.0727835644979697, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 95675.0, "indicador": "IPM_S2"}, {"p": 0.0147559186096658, "ic_low": 0.0122947742995568, "ic_high": 0.0177009008564111, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 21077.0, "indicador": "IPM_S3"}, {"p": 0.0735828661360874, "ic_low": 0.0679618782685997, "ic_high": 0.0796290354619536, "n": 8117, "n_eff": 7701.404527508973, "pop_total": 1428376.0, "pop_pos": 105104.0, "indicador": "IPM_S4"}], "ipm_grupo": [{"p": 0.1763383182783702, "ic_low": 0.156353964546702, "ic_high": 0.198276648839269, "n": 1333, "n_eff": 1268.7765226919048, "pop_total": 233035.0, "pop_pos": 41093.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.168868588793359, "ic_low": 0.1486089915684743, "ic_high": 0.1912696523500844, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 36454.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.1459135655345023, "ic_low": 0.1310300282539135, "ic_high": 0.1621721952412232, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 54976.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.1954355126026331, "ic_low": 0.1791757808980044, "ic_high": 0.2127882603746114, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 76359.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.1614257545309596, "ic_low": 0.141206930140579, "ic_high": 0.1839196218687336, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 34220.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "ipm_region": [{"p": 0.2008679360709643, "ic_low": 0.1734649575671884, "ic_high": 0.2313879863632771, "n": 740, "n_eff": 733.455328248261, "pop_total": 104616.0, "pop_pos": 21014.0, "region_lbl": "Brunca"}, {"p": 0.1333982437581672, "ic_low": 0.1233565518550587, "ic_high": 0.1441229791205234, "n": 4381, "n_eff": 4119.719153315736, "pop_total": 819591.0, "pop_pos": 109332.0, "region_lbl": "Central"}, {"p": 0.1608012441891099, "ic_low": 0.1360378708662536, "ic_high": 0.1890858059702511, "n": 753, "n_eff": 736.2598280062023, "pop_total": 117667.0, "pop_pos": 18921.0, "region_lbl": "Chorotega"}, {"p": 0.2863612853599989, "ic_low": 0.2576744152393463, "ic_high": 0.3168785558772093, "n": 908, "n_eff": 892.8851018340805, "pop_total": 150806.0, "pop_pos": 43185.0, "region_lbl": "Huetar Caribe"}, {"p": 0.2294643609106987, "ic_low": 0.2004524942119163, "ic_high": 0.2613028988246104, "n": 738, "n_eff": 731.4768287794225, "pop_total": 142484.0, "pop_pos": 32695.0, "region_lbl": "Huetar Norte"}, {"p": 0.192625413036948, "ic_low": 0.1626554441269012, "ic_high": 0.2266229516326808, "n": 597, "n_eff": 582.5006344939442, "pop_total": 93212.0, "pop_pos": 17955.0, "region_lbl": "Pacífico Central"}], "ipm_quintil": [{"p": 0.3418900117345903, "ic_low": 0.32293664794966, "ic_high": 0.3613620588819877, "n": 2415, "n_eff": 2338.138461841378, "pop_total": 403934.0, "pop_pos": 138101.0, "quintil": 1.0}, {"p": 0.2057077881244239, "ic_low": 0.188083283515931, "ic_high": 0.2245271015533657, "n": 1969, "n_eff": 1888.5306021177607, "pop_total": 348261.0, "pop_pos": 71640.0, "quintil": 2.0}, {"p": 0.0900183321736337, "ic_low": 0.0769807526480576, "ic_high": 0.1050127627836607, "n": 1689, "n_eff": 1605.8136746151476, "pop_total": 298928.0, "pop_pos": 26909.0, "quintil": 3.0}, {"p": 0.0247906423106527, "ic_low": 0.0175025410932512, "ic_high": 0.0350054005348398, "n": 1303, "n_eff": 1243.6550380178592, "pop_total": 237751.0, "pop_pos": 5894.0, "quintil": 4.0}, {"p": 0.0039999426531519, "ic_low": 0.0012688687882132, "ic_high": 0.0125355144185253, "n": 741, "n_eff": 652.671414849704, "pop_total": 139502.0, "pop_pos": 558.0, "quintil": 5.0}, {"p": null, "ic_low": null, "ic_high": null, "n": 0, "n_eff": 0.0, "pop_total": 0.0, "pop_pos": 0.0, "quintil": null}], "ipm_zona": [{"p": 0.2415981247009754, "ic_low": 0.2256961022578827, "ic_high": 0.2582468828286634, "n": 2730, "n_eff": 2654.770377273688, "pop_total": 436837.0, "pop_pos": 105539.0, "zona_lbl": "Rural"}, {"p": 0.1387368525090793, "ic_low": 0.1295153292270701, "ic_high": 0.1485029401837377, "n": 5387, "n_eff": 5092.99383004377, "pop_total": 991539.0, "pop_pos": 137563.0, "zona_lbl": "Urbana"}], "pob_grupo": [{"p": 0.2590769626880082, "ic_low": 0.2357218916169168, "ic_high": 0.2838865094017875, "n": 1333, "n_eff": 1268.7765226919048, "pop_total": 233035.0, "pop_pos": 60374.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.2930301289653128, "ic_low": 0.2678087751154597, "ic_high": 0.3195899816573961, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 63257.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.1079833639000878, "ic_low": 0.0950473270150939, "ic_high": 0.1224417949090827, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 40685.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.3019922602837896, "ic_low": 0.2828957935308721, "ic_high": 0.3217993339850709, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 117992.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.1651335465549611, "ic_low": 0.1447074038734959, "ic_high": 0.1878098177486332, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 35006.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "pob_region": [{"p": 0.3540758583773036, "ic_low": 0.3203081730970452, "ic_high": 0.3893641296460521, "n": 740, "n_eff": 733.455328248261, "pop_total": 104616.0, "pop_pos": 37042.0, "region_lbl": "Brunca"}, {"p": 0.1587413722210224, "ic_low": 0.1479009836602345, "ic_high": 0.1702175855416419, "n": 4381, "n_eff": 4119.719153315736, "pop_total": 819591.0, "pop_pos": 130103.0, "region_lbl": "Central"}, {"p": 0.2413165968368361, "ic_low": 0.2118033982688399, "ic_high": 0.2735151620164829, "n": 753, "n_eff": 736.2598280062023, "pop_total": 117667.0, "pop_pos": 28395.0, "region_lbl": "Chorotega"}, {"p": 0.3796931156585282, "ic_low": 0.3484401273261738, "ic_high": 0.4119768617782917, "n": 908, "n_eff": 892.8851018340805, "pop_total": 150806.0, "pop_pos": 57260.0, "region_lbl": "Huetar Caribe"}, {"p": 0.268072204598411, "ic_low": 0.237244678934626, "ic_high": 0.3013230103352278, "n": 738, "n_eff": 731.4768287794225, "pop_total": 142484.0, "pop_pos": 38196.0, "region_lbl": "Huetar Norte"}, {"p": 0.2823456207355276, "ic_low": 0.247308537907567, "ic_high": 0.3202346575540364, "n": 597, "n_eff": 582.5006344939442, "pop_total": 93212.0, "pop_pos": 26318.0, "region_lbl": "Pacífico Central"}], "pob_zona": [{"p": 0.2562969711814704, "ic_low": 0.2400497965388301, "ic_high": 0.273248404443953, "n": 2730, "n_eff": 2654.770377273688, "pop_total": 436837.0, "pop_pos": 111960.0, "zona_lbl": "Rural"}, {"p": 0.2071063266296131, "ic_low": 0.1961998396643704, "ic_high": 0.2184543185378801, "n": 5387, "n_eff": 5092.99383004377, "pop_total": 991539.0, "pop_pos": 205354.0, "zona_lbl": "Urbana"}], "pob_mig": [{"p": 0.2305479993346809, "ic_low": 0.2201918338326079, "ic_high": 0.2412405595838385, "n": 6471, "n_eff": 6150.171202484527, "pop_total": 1136297.0, "pop_pos": 261971.0, "migrante": 0.0}, {"p": 0.1894795586125671, "ic_low": 0.1707564402954069, "ic_high": 0.2097363878225583, "n": 1646, "n_eff": 1551.668769434137, "pop_total": 292079.0, "pop_pos": 55343.0, "migrante": 1.0}], "hac_region": [{"p": 0.0393343274451326, "ic_low": 0.0274993502874165, "ic_high": 0.0559696190626482, "n": 740, "n_eff": 733.455328248261, "pop_total": 104616.0, "pop_pos": 4115.0, "region_lbl": "Brunca"}, {"p": 0.0280164130645651, "ic_low": 0.0234002335429845, "ic_high": 0.0335119809045036, "n": 4381, "n_eff": 4119.719153315736, "pop_total": 819591.0, "pop_pos": 22962.0, "region_lbl": "Central"}, {"p": 0.0411160308327738, "ic_low": 0.0289958058085304, "ic_high": 0.0579998845798314, "n": 753, "n_eff": 736.2598280062023, "pop_total": 117667.0, "pop_pos": 4838.0, "region_lbl": "Chorotega"}, {"p": 0.0691882285850695, "ic_low": 0.0543217266522974, "ic_high": 0.0877458126261029, "n": 908, "n_eff": 892.8851018340805, "pop_total": 150806.0, "pop_pos": 10434.0, "region_lbl": "Huetar Caribe"}, {"p": 0.0438463694981777, "ic_low": 0.0312466834811408, "ic_high": 0.0612056696972396, "n": 739, "n_eff": 732.4767902135236, "pop_total": 142680.0, "pop_pos": 6256.0, "region_lbl": "Huetar Norte"}, {"p": 0.0594773205166716, "ic_low": 0.0430030947877962, "ic_high": 0.0817237729194376, "n": 597, "n_eff": 582.5006344939442, "pop_total": 93212.0, "pop_pos": 5544.0, "region_lbl": "Pacífico Central"}], "hac_quintil": [{"p": 0.0877915699099357, "ic_low": 0.0769865768665429, "ic_high": 0.099948821952915, "n": 2415, "n_eff": 2338.138461841378, "pop_total": 403934.0, "pop_pos": 35462.0, "quintil": 1.0}, {"p": 0.0417158395571137, "ic_low": 0.0335899406131614, "ic_high": 0.0517023448476611, "n": 1969, "n_eff": 1888.5306021177607, "pop_total": 348261.0, "pop_pos": 14528.0, "quintil": 2.0}, {"p": 0.0126953647701118, "ic_low": 0.0082667705426975, "ic_high": 0.0194498742243293, "n": 1689, "n_eff": 1605.8136746151476, "pop_total": 298928.0, "pop_pos": 3795.0, "quintil": 3.0}, {"p": 0.0015310135393752, "ic_low": 0.0004082671457695, "ic_high": 0.0057236652879254, "n": 1303, "n_eff": 1243.6550380178592, "pop_total": 237751.0, "pop_pos": 364.0, "quintil": 4.0}, {"p": 0.0, "ic_low": 0.0, "ic_high": 0.0058513076908534, "n": 741, "n_eff": 652.671414849704, "pop_total": 139502.0, "pop_pos": 0.0, "quintil": 5.0}, {"p": 0.0, "ic_low": 0.0, "ic_high": 0.7934506858870164, "n": 1, "n_eff": 1.0, "pop_total": 196.0, "pop_pos": 0.0, "quintil": null}], "seg_grupo": [{"p": 0.9716632866128432, "ic_low": 0.961017275739607, "ic_high": 0.979464046353526, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 226622.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.9714414097242812, "ic_low": 0.9603236169246204, "ic_high": 0.9795103346962684, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 209707.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.826448957058797, "ic_low": 0.8091145175203628, "ic_high": 0.8425156341396045, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 311382.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.9687954298818569, "ic_low": 0.960541157394736, "ic_high": 0.9753672969725388, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 378520.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.8378006094742105, "ic_low": 0.8152683591972, "ic_high": 0.8580630152355967, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 177602.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "seg_region": [{"p": 0.9120688995947084, "ic_low": 0.8893680389938046, "ic_high": 0.9304758429037336, "n": 740, "n_eff": 733.455328248261, "pop_total": 104616.0, "pop_pos": 95417.0, "region_lbl": "Brunca"}, {"p": 0.9213497952027292, "ic_low": 0.9127316413457144, "ic_high": 0.9291829003883492, "n": 4381, "n_eff": 4119.719153315736, "pop_total": 819591.0, "pop_pos": 755130.0, "region_lbl": "Central"}, {"p": 0.9047056523919196, "ic_low": 0.8813471421644886, "ic_high": 0.9238629536001772, "n": 753, "n_eff": 736.2598280062023, "pop_total": 117667.0, "pop_pos": 106454.0, "region_lbl": "Chorotega"}, {"p": 0.9244990252377226, "ic_low": 0.9052930764172964, "ic_high": 0.9400679779011424, "n": 908, "n_eff": 892.8851018340805, "pop_total": 150806.0, "pop_pos": 139420.0, "region_lbl": "Huetar Caribe"}, {"p": 0.8844757499299131, "ic_low": 0.8592944732497959, "ic_high": 0.9056453162790218, "n": 739, "n_eff": 732.4767902135236, "pop_total": 142680.0, "pop_pos": 126197.0, "region_lbl": "Huetar Norte"}, {"p": 0.8712933957001244, "ic_low": 0.8416465473741731, "ic_high": 0.8960751377731734, "n": 597, "n_eff": 582.5006344939442, "pop_total": 93212.0, "pop_pos": 81215.0, "region_lbl": "Pacífico Central"}], "seg_quintil": [{"p": 0.9095471042298988, "ic_low": 0.8972392979160373, "ic_high": 0.9205113820833444, "n": 2415, "n_eff": 2338.138461841378, "pop_total": 403934.0, "pop_pos": 367397.0, "quintil": 1.0}, {"p": 0.8828062860900302, "ic_low": 0.8675163357635761, "ic_high": 0.8965420657361639, "n": 1969, "n_eff": 1888.5306021177607, "pop_total": 348261.0, "pop_pos": 307447.0, "quintil": 2.0}, {"p": 0.902979981801638, "ic_low": 0.8875268808081472, "ic_high": 0.9165096509046702, "n": 1689, "n_eff": 1605.8136746151476, "pop_total": 298928.0, "pop_pos": 269926.0, "quintil": 3.0}, {"p": 0.9485301849413884, "ic_low": 0.9348103388358135, "ic_high": 0.9594876822268632, "n": 1303, "n_eff": 1243.6550380178592, "pop_total": 237751.0, "pop_pos": 225514.0, "quintil": 4.0}, {"p": 0.9573267766770368, "ic_low": 0.9389600660400746, "ic_high": 0.970341567942792, "n": 741, "n_eff": 652.671414849704, "pop_total": 139502.0, "pop_pos": 133549.0, "quintil": 5.0}, {"p": 0.0, "ic_low": 0.0, "ic_high": 0.7934506858870164, "n": 1, "n_eff": 1.0, "pop_total": 196.0, "pop_pos": 0.0, "quintil": null}], "labor_grupo": [{"p": 0.0343907971067311, "ic_low": 0.025689022974527, "ic_high": 0.0459013018513444, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 8021.0, "grupo_edad": 3, "indicador": "ocupado"}, {"p": 0.0113364003927436, "ic_low": 0.0068121783397425, "ic_high": 0.0188084258887572, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 2644.0, "grupo_edad": 3, "indicador": "desocupado"}, {"p": 0.9542728025005252, "ic_low": 0.941348736301326, "ic_high": 0.9644565235372154, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 222566.0, "grupo_edad": 3, "indicador": "inactivo"}, {"p": 0.0457271974994747, "ic_low": 0.0355434764627845, "ic_high": 0.0586512636986739, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 10665.0, "grupo_edad": 3, "indicador": "pea"}, {"p": 0.3065343937807214, "ic_low": 0.2804522722930795, "ic_high": 0.3339165035837255, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 64981.0, "grupo_edad": 4, "indicador": "ocupado"}, {"p": 0.092675931429434, "ic_low": 0.0771807570855145, "ic_high": 0.1109081117976047, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 19646.0, "grupo_edad": 4, "indicador": "desocupado"}, {"p": 0.6007896747898446, "ic_low": 0.5720623249169782, "ic_high": 0.628839770435996, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 127359.0, "grupo_edad": 4, "indicador": "inactivo"}, {"p": 0.3992103252101553, "ic_low": 0.3711602295640038, "ic_high": 0.4279376750830217, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 84627.0, "grupo_edad": 4, "indicador": "pea"}, {"p": 0.6053464836731065, "ic_low": 0.5836029099636888, "ic_high": 0.6266809449802454, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 228077.0, "grupo_edad": 5, "indicador": "ocupado"}, {"p": 0.0762372900249753, "ic_low": 0.0653372929009218, "ic_high": 0.0887829669499041, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 28724.0, "grupo_edad": 5, "indicador": "desocupado"}, {"p": 0.3184162263019181, "ic_low": 0.2982374630078516, "ic_high": 0.3393001690313324, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 119970.0, "grupo_edad": 5, "indicador": "inactivo"}, {"p": 0.6815837736980819, "ic_low": 0.6606998309686675, "ic_high": 0.7017625369921484, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 256801.0, "grupo_edad": 5, "indicador": "pea"}], "desempleo": [{"grupo": "Total 15-25", "p": 0.1448878563334119, "ic_low": 0.1295096385660889, "ic_high": 0.1617528017010489, "n": 1965, "n_eff": 1831.2609211049105, "pop_total": 352093.0, "pop_pos": 51014.0}, {"grupo": "Adolescencia media-superior (15-17)", "p": 0.2479137365213314, "ic_low": 0.1552702644514567, "ic_high": 0.3715224850384847, "n": 61, "n_eff": 58.70466464313124, "pop_total": 10665.0, "pop_pos": 2644.0}, {"grupo": "Transición educativa-laboral (18-20)", "p": 0.2321481323927351, "ic_low": 0.1957115778615776, "ic_high": 0.2730651547131754, "n": 477, "n_eff": 455.4596541415612, "pop_total": 84627.0, "pop_pos": 19646.0}, {"grupo": "Juventud temprana (21-25)", "p": 0.111853146989303, "ic_low": 0.0959526614086934, "ic_high": 0.1300096097767656, "n": 1427, "n_eff": 1318.0248704049957, "pop_total": 256801.0, "pop_pos": 28724.0}, {"grupo": "Sexo: Hombre", "p": 0.1220689923460704, "ic_low": 0.1036994787925674, "ic_high": 0.1431727278415792, "n": 1153, "n_eff": 1058.110669493681, "pop_total": 205646.0, "pop_pos": 25103.0}, {"grupo": "Sexo: Mujer", "p": 0.176930903330215, "ic_low": 0.1516528836288846, "ic_high": 0.2054021927821971, "n": 812, "n_eff": 773.4537464050995, "pop_total": 146447.0, "pop_pos": 25911.0}, {"grupo": "Región: Central", "p": 0.120074630583142, "ic_low": 0.1019049837811619, "ic_high": 0.140975390975983, "n": 1157, "n_eff": 1064.9296598764342, "pop_total": 220821.0, "pop_pos": 26515.0}, {"grupo": "Región: Brunca", "p": 0.1948544278204609, "ic_low": 0.1371193311635269, "ic_high": 0.2693120287858295, "n": 138, "n_eff": 136.35335052875217, "pop_total": 19784.0, "pop_pos": 3855.0}, {"grupo": "Región: Huetar Norte", "p": 0.176659712008756, "ic_low": 0.1238481165494078, "ic_high": 0.245676634959675, "n": 151, "n_eff": 149.45361083938062, "pop_total": 29237.0, "pop_pos": 5165.0}, {"grupo": "Región: Pacífico Central", "p": 0.1815389939011203, "ic_low": 0.1271093881574437, "ic_high": 0.2525329748512174, "n": 148, "n_eff": 143.86768536395832, "pop_total": 23119.0, "pop_pos": 4197.0}, {"grupo": "Región: Chorotega", "p": 0.1566981833634335, "ic_low": 0.1107790386514108, "ic_high": 0.2170062517400691, "n": 183, "n_eff": 179.46339767861866, "pop_total": 28239.0, "pop_pos": 4425.0}, {"grupo": "Región: Huetar Caribe", "p": 0.221959667238533, "ic_low": 0.168076369106441, "ic_high": 0.2871547343372588, "n": 188, "n_eff": 185.00265453291445, "pop_total": 30893.0, "pop_pos": 6857.0}, {"grupo": "Quintil 1", "p": 0.4515682975732294, "ic_low": 0.3913628587460268, "ic_high": 0.5132256279511245, "n": 261, "n_eff": 252.44268402088804, "pop_total": 43391.0, "pop_pos": 19594.0}, {"grupo": "Quintil 2", "p": 0.1814874923051094, "ic_low": 0.1467756927336657, "ic_high": 0.2222699371083485, "n": 411, "n_eff": 399.26319889562177, "pop_total": 71476.0, "pop_pos": 12972.0}, {"grupo": "Quintil 3", "p": 0.1135992384166856, "ic_low": 0.0885352300886883, "ic_high": 0.1446328467134862, "n": 519, "n_eff": 493.4590718812248, "pop_total": 92439.0, "pop_pos": 10501.0}, {"grupo": "Quintil 4", "p": 0.0484411547302018, "ic_low": 0.0329490853936886, "ic_high": 0.0706848992811081, "n": 535, "n_eff": 509.9998196526151, "pop_total": 98759.0, "pop_pos": 4784.0}, {"grupo": "Quintil 5", "p": 0.069012916739396, "ic_low": 0.0409517232716766, "ic_high": 0.11401642336281, "n": 238, "n_eff": 191.6004646048897, "pop_total": 45832.0, "pop_pos": 3163.0}], "nini_grupo": [{"p": 0.0518627455183916, "ic_low": 0.0409611651088053, "ic_high": 0.0654676591469136, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 12096.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.1793078554347335, "ic_low": 0.1630152244910934, "ic_high": 0.1968458922911345, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 67558.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.1719736208994933, "ic_low": 0.1511750834222705, "ic_high": 0.1949763251446219, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 36456.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "nini_sexo": [{"p": 0.0578466066360674, "ic_low": 0.0420361378651213, "ic_high": 0.0791125553355111, "n": 653, "n_eff": 618.8403503037553, "pop_total": 114164.0, "pop_pos": 6604.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Hombre"}, {"p": 0.0461252908026573, "ic_low": 0.0325027637660666, "ic_high": 0.0650732634843581, "n": 681, "n_eff": 650.9548245783805, "pop_total": 119067.0, "pop_pos": 5492.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Mujer"}, {"p": 0.1238399818723027, "ic_low": 0.1048024066097366, "ic_high": 0.1457726416974192, "n": 1083, "n_eff": 994.4044927083606, "pop_total": 194178.0, "pop_pos": 24047.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Hombre"}, {"p": 0.2382950058326441, "ic_low": 0.2126911671849657, "ic_high": 0.26593992769351, "n": 1029, "n_eff": 981.2520967807682, "pop_total": 182593.0, "pop_pos": 43511.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Mujer"}, {"p": 0.1452812891169055, "ic_low": 0.1195467031479503, "ic_high": 0.1754517624042378, "n": 643, "n_eff": 610.5282152354245, "pop_total": 113442.0, "pop_pos": 16481.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Hombre"}, {"p": 0.2027013313849651, "ic_low": 0.1706437241675069, "ic_high": 0.2390455236485551, "n": 552, "n_eff": 529.0118882932969, "pop_total": 98544.0, "pop_pos": 19975.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Mujer"}], "nini_region": [{"p": 0.1762033354012334, "ic_low": 0.141335762789553, "ic_high": 0.2174939589755242, "n": 387, "n_eff": 383.46717770130925, "pop_total": 54806.0, "pop_pos": 9657.0, "region_lbl": "Brunca"}, {"p": 0.1139884393063583, "ic_low": 0.102014397498896, "ic_high": 0.1271689102261131, "n": 2624, "n_eff": 2454.400806712961, "pop_total": 493050.0, "pop_pos": 56202.0, "region_lbl": "Central"}, {"p": 0.172929945926351, "ic_low": 0.1395674523000378, "ic_high": 0.2122997493054692, "n": 424, "n_eff": 414.4576460745594, "pop_total": 66206.0, "pop_pos": 11449.0, "region_lbl": "Chorotega"}, {"p": 0.1944440984117097, "ic_low": 0.1613849213297603, "ic_high": 0.2323986526350163, "n": 484, "n_eff": 475.7050118005792, "pop_total": 80275.0, "pop_pos": 15609.0, "region_lbl": "Huetar Caribe"}, {"p": 0.1916527230528418, "ic_low": 0.155156101785641, "ic_high": 0.2343528797819078, "n": 382, "n_eff": 378.0386403704286, "pop_total": 74108.0, "pop_pos": 14203.0, "region_lbl": "Huetar Norte"}, {"p": 0.1679024335580748, "ic_low": 0.1315344327841971, "ic_high": 0.2118726984913732, "n": 340, "n_eff": 331.7793776091934, "pop_total": 53543.0, "pop_pos": 8990.0, "region_lbl": "Pacífico Central"}], "nini_quintil": [{"p": 0.2562033786436492, "ic_low": 0.2304445851953085, "ic_high": 0.2837796972416538, "n": 1060, "n_eff": 1026.7188976534728, "pop_total": 175751.0, "pop_pos": 45028.0, "quintil": 1.0}, {"p": 0.1778649082160042, "ic_low": 0.1557968453735933, "ic_high": 0.2023097331849035, "n": 1079, "n_eff": 1037.46484439361, "pop_total": 190774.0, "pop_pos": 33932.0, "quintil": 2.0}, {"p": 0.1245626642467858, "ic_low": 0.1057050893744916, "ic_high": 0.1462342891739928, "n": 1076, "n_eff": 1021.1773142789824, "pop_total": 190643.0, "pop_pos": 23747.0, "quintil": 3.0}, {"p": 0.0573512526251286, "ic_low": 0.0437687515136061, "ic_high": 0.0748189370994281, "n": 914, "n_eff": 871.4927424391404, "pop_total": 168087.0, "pop_pos": 9640.0, "quintil": 4.0}, {"p": 0.0389798730020613, "ic_low": 0.0245868737849555, "ic_high": 0.0612692019164771, "n": 511, "n_eff": 444.7187974229633, "pop_total": 96537.0, "pop_pos": 3763.0, "quintil": 5.0}, {"p": 0.0, "ic_low": 0.0, "ic_high": 0.7934506858870164, "n": 1, "n_eff": 1.0, "pop_total": 196.0, "pop_pos": 0.0, "quintil": null}], "volunt_grupo": [{"p": 0.0160570421599187, "ic_low": 0.0104609256613557, "ic_high": 0.0245724854069629, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 3745.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.0149746132266018, "ic_low": 0.0104823989666717, "ic_high": 0.0213504205048315, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 5642.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.0135150434462653, "ic_low": 0.0082600344330877, "ic_high": 0.0220389785051536, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 2865.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "volunt_sexo": [{"p": 0.0134455695315511, "ic_low": 0.0069160541140642, "ic_high": 0.0259784040898173, "n": 653, "n_eff": 618.8403503037553, "pop_total": 114164.0, "pop_pos": 1535.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Hombre"}, {"p": 0.0185609782727372, "ic_low": 0.0106687412053624, "ic_high": 0.032102081182797, "n": 681, "n_eff": 650.9548245783805, "pop_total": 119067.0, "pop_pos": 2210.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Mujer"}, {"p": 0.009728187539268, "ic_low": 0.0052405771645524, "ic_high": 0.0179891344923194, "n": 1083, "n_eff": 994.4044927083606, "pop_total": 194178.0, "pop_pos": 1889.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Hombre"}, {"p": 0.0205539095146035, "ic_low": 0.0133681717833516, "ic_high": 0.0314789315114519, "n": 1029, "n_eff": 981.2520967807682, "pop_total": 182593.0, "pop_pos": 3753.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Mujer"}, {"p": 0.0158318788455774, "ic_low": 0.0085350171966241, "ic_high": 0.0291834400711178, "n": 643, "n_eff": 610.5282152354245, "pop_total": 113442.0, "pop_pos": 1796.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Hombre"}, {"p": 0.0108479460951453, "ic_low": 0.0048984650913354, "ic_high": 0.0238502399800928, "n": 552, "n_eff": 529.0118882932969, "pop_total": 98544.0, "pop_pos": 1069.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Mujer"}], "tdom_grupo": [{"p": 0.7758917125082, "ic_low": 0.7521432289157053, "ic_high": 0.7979759130628667, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 180962.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.756738177832158, "ic_low": 0.7373268051724801, "ic_high": 0.7751525094039196, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 285117.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.7825752644042531, "ic_low": 0.7576975502798415, "ic_high": 0.8055542196272006, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 165895.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "tdom_sexo": [{"p": 0.7247906520444273, "ic_low": 0.6882970102202923, "ic_high": 0.7585107295156751, "n": 653, "n_eff": 618.8403503037553, "pop_total": 114164.0, "pop_pos": 82745.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Hombre"}, {"p": 0.824888508150873, "ic_low": 0.7938096525007716, "ic_high": 0.8521553512437247, "n": 681, "n_eff": 650.9548245783805, "pop_total": 119067.0, "pop_pos": 98217.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)", "sexo_lbl": "Mujer"}, {"p": 0.6613931547343159, "ic_low": 0.6314088251678236, "ic_high": 0.6901353351933665, "n": 1083, "n_eff": 994.4044927083606, "pop_total": 194178.0, "pop_pos": 128428.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Hombre"}, {"p": 0.8581325680612072, "ic_low": 0.834902758528296, "ic_high": 0.8785692387964006, "n": 1029, "n_eff": 981.2520967807682, "pop_total": 182593.0, "pop_pos": 156689.0, "grupo_edad_lbl": "Juventud temprana (21-25)", "sexo_lbl": "Mujer"}, {"p": 0.709287565451949, "ic_low": 0.6720483616050102, "ic_high": 0.743909551686738, "n": 643, "n_eff": 610.5282152354245, "pop_total": 113442.0, "pop_pos": 80463.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Hombre"}, {"p": 0.866942685500893, "ic_low": 0.8353386532829145, "ic_high": 0.8932559741182257, "n": 552, "n_eff": 529.0118882932969, "pop_total": 98544.0, "pop_pos": 85432.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)", "sexo_lbl": "Mujer"}], "beca_grupo": [{"p": 0.0225024944019642, "ic_low": 0.0154690939294094, "ic_high": 0.0326278216212935, "n": 1244, "n_eff": 1182.659488914007, "pop_total": 217487.0, "pop_pos": 4894.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.0096641849178284, "ic_low": 0.005436282694273, "ic_high": 0.0171235962725101, "n": 1216, "n_eff": 1161.9326538585303, "pop_total": 211813.0, "pop_pos": 2047.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.1203336880771739, "ic_low": 0.0991542871044567, "ic_high": 0.1453073044256829, "n": 800, "n_eff": 764.9459508249223, "pop_total": 145645.0, "pop_pos": 17526.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.0094369371101591, "ic_low": 0.0061257746317249, "ic_high": 0.0145117479609824, "n": 2234, "n_eff": 2133.180679583453, "pop_total": 390063.0, "pop_pos": 3681.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.1048113178149637, "ic_low": 0.0839420082608255, "ic_high": 0.130132015689658, "n": 716, "n_eff": 678.2383518494843, "pop_total": 128364.0, "pop_pos": 13454.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "idioma_grupo": [{"p": 0.1323494732689908, "ic_low": 0.1148146657535283, "ic_high": 0.1521020876548526, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 30868.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.0657472946931514, "ic_low": 0.052988433416648, "ic_high": 0.0813145200101929, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 14193.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.2741161076622139, "ic_low": 0.25489373270307, "ic_high": 0.2942157012869296, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 103279.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.049142293159705, "ic_low": 0.035773004617166, "ic_high": 0.0671600166619969, "n": 777, "n_eff": 741.3346413478301, "pop_total": 135769.0, "pop_pos": 6672.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.2419357882124291, "ic_low": 0.2179645864237138, "ic_high": 0.2676410473692369, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 51287.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "mig_grupo": [{"p": 0.1716452787150936, "ic_low": 0.151903264323726, "ic_high": 0.1933680528330111, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 40033.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.1787448117402905, "ic_low": 0.1579719194693029, "ic_high": 0.2015952996313384, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 38586.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.2678550100724313, "ic_low": 0.2487866415134442, "ic_high": 0.2878249122298341, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 100920.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.1681161571694752, "ic_low": 0.1528590547175202, "ic_high": 0.1845643189461972, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 65685.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.2219533365410923, "ic_low": 0.1987821829566486, "ic_high": 0.2469928191824971, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 47051.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}], "discap_grupo": [{"p": 0.0391543148209286, "ic_low": 0.029801645040279, "ic_high": 0.051286979875546, "n": 1334, "n_eff": 1269.7720193987186, "pop_total": 233231.0, "pop_pos": 9132.0, "grupo_edad_lbl": "Adolescencia media-superior (15-17)"}, {"p": 0.0392779054254373, "ic_low": 0.0296214549033527, "ic_high": 0.05191390068558, "n": 1239, "n_eff": 1184.155441732703, "pop_total": 215872.0, "pop_pos": 8479.0, "grupo_edad_lbl": "Adolescencia temprana (12-14)"}, {"p": 0.0371923529146351, "ic_low": 0.0297041284130469, "ic_high": 0.0464778879831297, "n": 2112, "n_eff": 1974.5105898204931, "pop_total": 376771.0, "pop_pos": 14013.0, "grupo_edad_lbl": "Juventud temprana (21-25)"}, {"p": 0.0479534798009787, "ic_low": 0.0396773281185309, "ic_high": 0.0578519286658369, "n": 2238, "n_eff": 2136.9723378197623, "pop_total": 390712.0, "pop_pos": 18736.0, "grupo_edad_lbl": "Niñez intermedia (6-11)"}, {"p": 0.0314784938628022, "ic_low": 0.0228101324535054, "ic_high": 0.0432950762679487, "n": 1195, "n_eff": 1139.538296095232, "pop_total": 211986.0, "pop_pos": 6673.0, "grupo_edad_lbl": "Transición educativa-laboral (18-20)"}]};
+
+// Registrar plugins
+Chart.register(ChartDataLabels);
+
+// Paleta
+const PAL = {
+  primario: '#5C2D91', secundario: '#F39200', verde: '#5C9F4D',
+  rojo: '#D9534F', azul: '#1F77B4', rosa: '#C44569', gris: '#7C7C7C'
+};
+const ORD_GRUPO = ['Niñez intermedia (6-11)', 'Adolescencia temprana (12-14)',
+                   'Adolescencia media-superior (15-17)', 'Transición educativa-laboral (18-20)',
+                   'Juventud temprana (21-25)'];
+const COL_GRUPO = ['#7BC3A8', '#4DA8A8', '#5C2D91', '#F39200', '#D9534F'];
+const COL_QUINTIL = ['#D9534F', '#F39200', '#F0CA4D', '#7BC3A8', '#5C9F4D'];
+
+const fmtPct = v => (v == null) ? '—' : (v * 100).toFixed(0) + '%';
+const fmtPct1 = v => (v == null) ? '—' : (v * 100).toFixed(1) + '%';
+
+// KPIs - mostrar cifras expandidas absolutas y % entre paréntesis
+const k = DATA.kpis;
+const fmtMiles = n => Math.round(n).toLocaleString('es-CR').replace(/,/g, ' ');
+const setKpi = (id, valor, lblId, etqBase, pct) => {
+  document.getElementById(id).textContent = valor;
+  if (lblId) {
+    const lbl = document.getElementById(lblId);
+    if (pct != null) lbl.textContent = etqBase + ' (' + pct.toFixed(1).replace(/\.0$/,'') + '%)';
+  }
+};
+document.getElementById('kpi-pob').textContent = fmtMiles(k.pob_625);
+setKpi('kpi-pobm', fmtMiles(k.pob_pobreza), 'lbl-pobm', 'Personas en pobreza monetaria', k.pobreza_monetaria);
+setKpi('kpi-ipm', fmtMiles(k.pob_ipm), 'lbl-ipm', 'Personas en pobreza multidimensional', k.ipm_pobreza);
+setKpi('kpi-asis', fmtMiles(k.pob_asis), 'lbl-asis', 'Personas que asisten al sistema educativo', k.asistencia_total);
+setKpi('kpi-aseg', fmtMiles(k.pob_aseg), 'lbl-aseg', 'Personas con seguro de salud', k.aseg);
+setKpi('kpi-int', fmtMiles(k.pob_int), 'lbl-int', 'Usaron internet (3m)', k.internet_total);
+setKpi('kpi-des', k.tasa_desempleo.toFixed(1) + '%', 'lbl-des', 'Tasa de desempleo abierto 15-25', null);
+setKpi('kpi-nini', fmtMiles(k.pob_nini), 'lbl-nini', 'Personas NINI 15-25', k.nini);
+setKpi('kpi-vol', fmtMiles(k.pob_vol), 'lbl-vol', 'Hacen voluntariado 15-25', k.voluntariado);
+setKpi('kpi-mig', fmtMiles(k.pob_mig), 'lbl-mig', 'Personas migrantes', k.migrante);
+setKpi('kpi-disc', fmtMiles(k.pob_disc), 'lbl-disc', 'Personas con discapacidad', k.discap);
+
+// Tabs
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('activo'));
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('activa'));
+    btn.classList.add('activo');
+    document.getElementById(btn.dataset.tab).classList.add('activa');
+  });
+});
+
+// Charts
+const charts = {};
+
+function makeBar(canvasId, labels, values, options = {}) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return null;
+  const colors = options.colors || labels.map(() => PAL.primario);
+  const popPos = options.popPos || [];
+  const popTotal = options.popTotal || [];
+  charts[canvasId] = new Chart(ctx, {
+    type: options.horizontal ? 'bar' : 'bar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: options.label || '',
+        data: values,
+        backgroundColor: colors,
+        borderRadius: 4,
+        barThickness: options.barThickness || 'flex',
+        maxBarThickness: 60,
+      }]
+    },
+    options: {
+      indexAxis: options.horizontal ? 'y' : 'x',
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        datalabels: {
+          color: '#222',
+          anchor: options.horizontal ? 'end' : 'end',
+          align: options.horizontal ? 'right' : 'top',
+          formatter: (v, ctx2) => {
+            if (options.fmt) return options.fmt(v);
+            const idx = ctx2.dataIndex;
+            const pp = popPos[idx];
+            const pct = (v*100).toFixed(0) + '%';
+            if (pp != null && pp >= 1000) {
+              return pct + ' · ' + Math.round(pp/1000) + ' mil';
+            }
+            return pct;
+          },
+          font: { weight: 'bold', size: 11 }
+        },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const v = ctx.parsed[options.horizontal ? 'x' : 'y'];
+              const pct = (v * 100).toFixed(1) + '%';
+              const idx = ctx.dataIndex;
+              if (popPos[idx] != null && popTotal[idx] != null) {
+                return pct + '  (' + Math.round(popPos[idx]).toLocaleString('es-CR') + ' de ' + Math.round(popTotal[idx]).toLocaleString('es-CR') + ' personas)';
+              }
+              return pct;
+            }
+          }
+        }
+      },
+      scales: {
+        [options.horizontal ? 'x' : 'y']: {
+          beginAtZero: true,
+          max: options.max || 1.05,
+          ticks: { display: !options.hideAxis, callback: (v) => (v*100).toFixed(0) + '%' }
+        },
+        [options.horizontal ? 'y' : 'x']: {
+          ticks: { font: { size: 11 } }
+        }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+  return charts[canvasId];
+}
+
+function makeStackedBar(canvasId, labels, datasets, options = {}) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        datalabels: {
+          color: 'white', font: { weight: 'bold', size: 11 },
+          formatter: (v) => v >= 0.05 ? (v*100).toFixed(0) + '%' : ''
+        },
+        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%' } }
+      },
+      scales: {
+        x: { stacked: true },
+        y: { stacked: true, beginAtZero: true, max: 1, ticks: { callback: (v) => (v*100).toFixed(0) + '%' } }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+function makeGroupedBar(canvasId, labels, datasets, options = {}) {
+  if (charts[canvasId]) charts[canvasId].destroy();
+  charts[canvasId] = new Chart(document.getElementById(canvasId), {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      maintainAspectRatio: false,
+      responsive: true,
+      plugins: {
+        legend: { position: 'bottom' },
+        datalabels: {
+          color: '#222', anchor: 'end', align: 'top',
+          formatter: (v) => (v*100).toFixed(0) + '%',
+          font: { weight: 'bold', size: 10 }
+        },
+        tooltip: { callbacks: { label: (ctx) => ctx.dataset.label + ': ' + (ctx.parsed.y * 100).toFixed(1) + '%' } }
+      },
+      scales: {
+        y: { beginAtZero: true, max: options.max || 1.1, ticks: { callback: (v) => (v*100).toFixed(0) + '%' } }
+      }
+    },
+    plugins: [ChartDataLabels]
+  });
+}
+
+// Helper: agrupar y mapear datos
+function ord(rows, key, order) {
+  const m = {};
+  rows.forEach(r => { m[r[key]] = r; });
+  return order.map(k => m[k]).filter(x => x);
+}
+function abreviar(g) { return g.replace('Adolescencia ', 'Adoles. ').replace('Transición educativa-laboral', 'Transición ed.-lab.').replace('Niñez intermedia', 'Niñez int.').replace('Juventud temprana', 'Juvent. temp.'); }
+
+// === GRÁFICOS PERFIL ===
+function gPerfil() {
+  const grupo = ord(DATA.grupo_edad, 'grupo_edad_lbl', ORD_GRUPO);
+  makeBar('g-grupo', grupo.map(r => abreviar(r.grupo_edad_lbl)),
+    grupo.map(r => r.prop), { colors: COL_GRUPO });
+
+  const region = [...DATA.region].sort((a,b) => a.prop - b.prop);
+  makeBar('g-region', region.map(r => r.region_lbl),
+    region.map(r => r.prop), { horizontal: true, colors: region.map(()=>PAL.primario) });
+
+  const mig = ord(DATA.mig_grupo, 'grupo_edad_lbl', ORD_GRUPO);
+  makeBar('g-mig', mig.map(r => abreviar(r.grupo_edad_lbl)),
+    mig.map(r => r.p), { colors: COL_GRUPO, max: 0.4 });
+
+  const disc = ord(DATA.discap_grupo, 'grupo_edad_lbl', ORD_GRUPO);
+  makeBar('g-disc', disc.map(r => abreviar(r.grupo_edad_lbl)),
+    disc.map(r => r.p), { colors: COL_GRUPO, max: 0.1, fmt: v => (v*100).toFixed(1)+'%' });
+}
+
+// === EDUCACIÓN ===
+function gAsistencia(corte = 'grupo') {
+  let labels, values, datasets;
+  if (corte === 'grupo') {
+    const r = ord(DATA.asist_grupo, 'grupo_edad_lbl', ORD_GRUPO);
+    labels = r.map(x => abreviar(x.grupo_edad_lbl));
+    values = r.map(x => x.p);
+    makeBar('g-asist', labels, values, { colors: COL_GRUPO, max: 1.1 });
+    return;
+  }
+  if (corte === 'quintil') {
+    const r = DATA.asist_quintil.filter(x => x.quintil != null);
+    const groups = [...new Set(r.map(x => x.grupo_edad_lbl))].filter(g=>g);
+    const orderedG = ORD_GRUPO.filter(g => groups.includes(g));
+    const quintiles = [1,2,3,4,5];
+    datasets = quintiles.map((q, i) => ({
+      label: 'Q'+q, data: orderedG.map(g => {
+        const found = r.find(x => x.quintil == q && x.grupo_edad_lbl == g);
+        return found ? found.p : 0;
+      }), backgroundColor: COL_QUINTIL[i]
+    }));
+    makeGroupedBar('g-asist', orderedG.map(abreviar), datasets, { max: 1.1 });
+    return;
+  }
+  if (corte === 'region') {
+    const r = DATA.asist_region;
+    const groups = ORD_GRUPO;
+    const regs = [...new Set(r.map(x=>x.region_lbl))].filter(x=>x);
+    datasets = regs.map((reg, i) => ({
+      label: reg, data: groups.map(g => {
+        const f = r.find(x => x.region_lbl == reg && x.grupo_edad_lbl == g);
+        return f ? f.p : 0;
+      }), backgroundColor: ['#5C2D91','#F39200','#5C9F4D','#D9534F','#1F77B4','#C44569'][i]
+    }));
+    makeGroupedBar('g-asist', groups.map(abreviar), datasets, { max: 1.1 });
+    return;
+  }
+  if (corte === 'zona') {
+    const r = DATA.asist_zona.filter(x => x.zona_lbl);
+    const zonas = ['Urbana', 'Rural'];
+    datasets = zonas.map((z, i) => ({
+      label: z, data: ORD_GRUPO.map(g => {
+        const f = r.find(x => x.zona_lbl == z && x.grupo_edad_lbl == g);
+        return f ? f.p : 0;
+      }), backgroundColor: [PAL.primario, PAL.secundario][i]
+    }));
+    makeGroupedBar('g-asist', ORD_GRUPO.map(abreviar), datasets, { max: 1.1 });
+    return;
+  }
+  if (corte === 'mig') {
+    const r = DATA.asist_mig.filter(x => x.migrante != null);
+    const cats = [{v:0, lbl:'No migrante', c:PAL.primario}, {v:1, lbl:'Migrante', c:PAL.secundario}];
+    datasets = cats.map(cat => ({
+      label: cat.lbl, data: ORD_GRUPO.map(g => {
+        const f = r.find(x => x.migrante == cat.v && x.grupo_edad_lbl == g);
+        return f ? f.p : 0;
+      }), backgroundColor: cat.c
+    }));
+    makeGroupedBar('g-asist', ORD_GRUPO.map(abreviar), datasets, { max: 1.1 });
+    return;
+  }
+  if (corte === 'pobre') {
+    const r = DATA.asist_pobre.filter(x => x.pobre_monetaria != null);
+    const cats = [{v:0, lbl:'No pobre', c:PAL.verde}, {v:1, lbl:'Pobre', c:PAL.rojo}];
+    datasets = cats.map(cat => ({
+      label: cat.lbl, data: ORD_GRUPO.map(g => {
+        const f = r.find(x => x.pobre_monetaria == cat.v && x.grupo_edad_lbl == g);
+        return f ? f.p : 0;
+      }), backgroundColor: cat.c
+    }));
+    makeGroupedBar('g-asist', ORD_GRUPO.map(abreviar), datasets, { max: 1.1 });
+    return;
+  }
+  if (corte === 'discap') {
+    const r = DATA.asist_discap.filter(x => x.discap != null);
+    const cats = [{v:0, lbl:'Sin discapacidad', c:PAL.primario}, {v:1, lbl:'Con discapacidad', c:PAL.secundario}];
+    datasets = cats.map(cat => ({
+      label: cat.lbl, data: ORD_GRUPO.map(g => {
+        const f = r.find(x => x.discap == cat.v && x.grupo_edad_lbl == g);
+        return f ? f.p : 0;
+      }), backgroundColor: cat.c
+    }));
+    makeGroupedBar('g-asist', ORD_GRUPO.map(abreviar), datasets, { max: 1.1 });
+    return;
+  }
+}
+
+function gRezago() {
+  const r = DATA.rezago_quintil.filter(x => x.grupo_edad_lbl == 'Adolescencia media-superior (15-17)' && x.quintil != null);
+  r.sort((a,b) => a.quintil - b.quintil);
+  makeBar('g-rez', r.map(x => 'Q'+x.quintil), r.map(x => x.p),
+    { colors: COL_QUINTIL, max: r.reduce((m,x)=>Math.max(m,x.p),0)*1.4 });
+}
+
+function gTic() {
+  const r = [...DATA.tic_total].sort((a,b) => a.p - b.p);
+  makeBar('g-tic', r.map(x => x.TIC), r.map(x => x.p),
+    { horizontal: true, colors: ['#A0A0A0','#4DA8A8','#5C2D91','#F39200','#D9534F'], max: 1 });
+}
+
+function gInternet(corte = 'quintil') {
+  let r, labels, values, colors;
+  if (corte === 'quintil') {
+    r = DATA.internet_quintil.filter(x => x.quintil != null);
+    r.sort((a,b) => a.quintil - b.quintil);
+    labels = r.map(x => 'Q'+x.quintil);
+    values = r.map(x => x.p);
+    colors = COL_QUINTIL;
+  } else if (corte === 'region') {
+    r = [...DATA.internet_region].sort((a,b) => a.p - b.p);
+    labels = r.map(x => x.region_lbl);
+    values = r.map(x => x.p);
+    colors = labels.map(()=>PAL.primario);
+  } else if (corte === 'zona') {
+    r = DATA.internet_zona.filter(x => x.zona_lbl);
+    labels = r.map(x => x.zona_lbl);
+    values = r.map(x => x.p);
+    colors = [PAL.primario, PAL.secundario];
+  } else {
+    r = ord(DATA.internet_grupo, 'grupo_edad_lbl', ORD_GRUPO);
+    labels = r.map(x => abreviar(x.grupo_edad_lbl));
+    values = r.map(x => x.p);
+    colors = COL_GRUPO;
+  }
+  makeBar('g-internet', labels, values, { colors, horizontal: corte === 'region', max: 1.05 });
+}
+
+function gIpmEduc() {
+  const r = DATA.ipm_educ;
+  const lblMap = {'IPM_E1':'No asistencia','IPM_E2':'Rezago','IPM_E3':'Sin bachillerato','IPM_E4':'Bajo capital humano'};
+  const inds = ['IPM_E1','IPM_E2','IPM_E3','IPM_E4'];
+  const cmap = ['#5C2D91','#4DA8A8','#F39200','#D9534F'];
+  const datasets = inds.map((ind, i) => ({
+    label: lblMap[ind],
+    data: ORD_GRUPO.map(g => {
+      const f = r.find(x => x.indicador == ind && x.grupo_edad_lbl == g);
+      return f ? f.p : 0;
+    }),
+    backgroundColor: cmap[i]
+  }));
+  makeGroupedBar('g-ipme', ORD_GRUPO.map(abreviar), datasets, { max: 0.45 });
+}
+
+function gBecaIdioma() {
+  const beca = ord(DATA.beca_grupo, 'grupo_edad_lbl', ORD_GRUPO).map(x => x.p);
+  const idioma = ord(DATA.idioma_grupo, 'grupo_edad_lbl', ORD_GRUPO).map(x => x.p);
+  makeGroupedBar('g-becaidioma', ORD_GRUPO.map(abreviar), [
+    { label: 'Recibe beca', data: beca, backgroundColor: PAL.secundario },
+    { label: 'Domina segundo idioma', data: idioma, backgroundColor: PAL.primario }
+  ], { max: 0.4 });
+}
+
+// === VIDA ===
+function gPob(corte = 'grupo') {
+  let r, labels, values, colors;
+  if (corte === 'grupo') {
+    r = ord(DATA.pob_grupo, 'grupo_edad_lbl', ORD_GRUPO);
+    labels = r.map(x => abreviar(x.grupo_edad_lbl));
+    values = r.map(x => x.p);
+    colors = COL_GRUPO;
+  } else if (corte === 'region') {
+    r = [...DATA.pob_region].filter(x => x.region_lbl).sort((a,b) => a.p - b.p);
+    labels = r.map(x => x.region_lbl);
+    values = r.map(x => x.p);
+    colors = r.map(x => x.p < 0.20 ? PAL.verde : x.p < 0.30 ? PAL.secundario : PAL.rojo);
+  } else if (corte === 'zona') {
+    r = DATA.pob_zona.filter(x => x.zona_lbl);
+    labels = r.map(x => x.zona_lbl);
+    values = r.map(x => x.p);
+    colors = [PAL.primario, PAL.secundario];
+  } else {
+    r = DATA.pob_mig.filter(x => x.migrante != null);
+    labels = r.map(x => x.migrante == 0 ? 'No migrante' : 'Migrante');
+    values = r.map(x => x.p);
+    colors = [PAL.primario, PAL.secundario];
+  }
+  makeBar('g-pob', labels, values,
+    { colors, horizontal: corte === 'region', max: corte === 'grupo' ? 0.35 : 0.45 });
+}
+
+function gIpm() {
+  const r = ord(DATA.ipm_grupo, 'grupo_edad_lbl', ORD_GRUPO);
+  makeBar('g-ipm', r.map(x => abreviar(x.grupo_edad_lbl)), r.map(x => x.p),
+    { colors: COL_GRUPO, max: 0.3 });
+}
+
+function gIpmPriv() {
+  const lblMap = {
+    IPM_VUI1: 'Mal estado techo/piso', IPM_VUI2: 'Mal estado paredes',
+    IPM_VUI3: 'Hacinamiento', IPM_VUI4: 'Sin uso internet',
+    IPM_S1: 'Sin seguro de salud', IPM_S2: 'Sin agua potable',
+    IPM_S3: 'Sin saneamiento', IPM_S4: 'Sin manejo basura'
+  };
+  const r = [...DATA.ipm_dim].sort((a,b) => a.p - b.p);
+  const colors = r.map(x => x.indicador.startsWith('IPM_VUI') ? PAL.secundario : PAL.primario);
+  makeBar('g-ipmpriv', r.map(x => lblMap[x.indicador]), r.map(x => x.p),
+    { horizontal: true, colors, max: 0.4, fmt: v => (v*100).toFixed(1)+'%' });
+}
+
+function gSeg() {
+  const r = DATA.seg_quintil.filter(x => x.quintil != null);
+  r.sort((a,b) => a.quintil - b.quintil);
+  makeBar('g-seg', r.map(x => 'Q'+x.quintil), r.map(x => x.p),
+    { colors: COL_QUINTIL, max: 1.05 });
+}
+
+function gHac() {
+  const r = [...DATA.hac_region].filter(x => x.region_lbl).sort((a,b) => a.p - b.p);
+  makeBar('g-hac', r.map(x => x.region_lbl), r.map(x => x.p),
+    { horizontal: true, colors: r.map(()=>PAL.primario), max: 0.15, fmt: v => (v*100).toFixed(1)+'%' });
+}
+
+// === LABORAL ===
+function gCondAct() {
+  const groups = [3,4,5];
+  const lbl = {3:'15-17',4:'18-20',5:'21-25'};
+  const inds = ['ocupado','desocupado','inactivo'];
+  const lab = {'ocupado':'Trabaja','desocupado':'Busca trabajo','inactivo':'No trabaja ni busca'};
+  const cmap = {'ocupado':PAL.verde,'desocupado':PAL.rojo,'inactivo':PAL.gris};
+  const datasets = inds.map(ind => ({
+    label: lab[ind],
+    data: groups.map(g => {
+      const f = DATA.labor_grupo.find(x => x.grupo_edad == g && x.indicador == ind);
+      return f ? f.p : 0;
+    }),
+    backgroundColor: cmap[ind]
+  }));
+  makeStackedBar('g-cond', groups.map(g => lbl[g]), datasets);
+}
+
+function gDes() {
+  const all = DATA.desempleo.filter(x => x.n > 30);
+  const focus = all.filter(x => /Total|Adolescencia|Transición|Juventud|Sexo:/.test(x.grupo));
+  focus.sort((a,b) => a.p - b.p);
+  const colors = focus.map(x => x.grupo == 'Total 15-25' ? PAL.primario :
+    x.grupo.includes('Mujer') ? PAL.rosa : x.grupo.includes('Hombre') ? PAL.azul : PAL.gris);
+  makeBar('g-des', focus.map(x => x.grupo.replace('Sexo: ','')), focus.map(x => x.p),
+    { horizontal: true, colors, max: 0.3, fmt: v => (v*100).toFixed(1)+'%' });
+}
+
+function gNini(corte = 'grupo') {
+  const grpsLab = ['Adolescencia media-superior (15-17)','Transición educativa-laboral (18-20)','Juventud temprana (21-25)'];
+  if (corte === 'grupo') {
+    const r = grpsLab.map(g => DATA.nini_grupo.find(x => x.grupo_edad_lbl == g)).filter(x=>x);
+    makeBar('g-nini', r.map(x => abreviar(x.grupo_edad_lbl)), r.map(x => x.p),
+      { colors: COL_GRUPO.slice(2), max: 0.25 });
+  } else if (corte === 'sexo') {
+    const r = DATA.nini_sexo;
+    const datasets = ['Hombre','Mujer'].map((s,i) => ({
+      label: s,
+      data: grpsLab.map(g => {
+        const f = r.find(x => x.grupo_edad_lbl == g && x.sexo_lbl == s);
+        return f ? f.p : 0;
+      }),
+      backgroundColor: [PAL.azul, PAL.rosa][i]
+    }));
+    makeGroupedBar('g-nini', grpsLab.map(abreviar), datasets, { max: 0.3 });
+  } else if (corte === 'region') {
+    const r = [...DATA.nini_region].filter(x => x.region_lbl).sort((a,b) => a.p - b.p);
+    makeBar('g-nini', r.map(x => x.region_lbl), r.map(x => x.p),
+      { horizontal: true, colors: r.map(()=>PAL.primario), max: 0.25 });
+  } else {
+    const r = DATA.nini_quintil.filter(x => x.quintil != null);
+    r.sort((a,b) => a.quintil - b.quintil);
+    makeBar('g-nini', r.map(x => 'Q'+x.quintil), r.map(x => x.p),
+      { colors: COL_QUINTIL, max: 0.3 });
+  }
+}
+
+function gVol() {
+  const grpsLab = ['Adolescencia media-superior (15-17)','Transición educativa-laboral (18-20)','Juventud temprana (21-25)'];
+  const r = grpsLab.map(g => DATA.volunt_grupo.find(x => x.grupo_edad_lbl == g)).filter(x=>x);
+  makeBar('g-vol', r.map(x => abreviar(x.grupo_edad_lbl)), r.map(x => x.p),
+    { colors: COL_GRUPO.slice(2), max: 0.2 });
+}
+
+function gTdom() {
+  const grpsLab = ['Adolescencia media-superior (15-17)','Transición educativa-laboral (18-20)','Juventud temprana (21-25)'];
+  const r = DATA.tdom_sexo;
+  const datasets = ['Hombre','Mujer'].map((s,i) => ({
+    label: s,
+    data: grpsLab.map(g => {
+      const f = r.find(x => x.grupo_edad_lbl == g && x.sexo_lbl == s);
+      return f ? f.p : 0;
+    }),
+    backgroundColor: [PAL.azul, PAL.rosa][i]
+  }));
+  makeGroupedBar('g-tdom', grpsLab.map(abreviar), datasets, { max: 1.1 });
+}
+
+// === Filtros ===
+document.querySelectorAll('.filtros').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target.tagName !== 'BUTTON') return;
+    el.querySelectorAll('button').forEach(b => b.classList.remove('activo'));
+    e.target.classList.add('activo');
+    const target = el.dataset.target;
+    const corte = e.target.dataset.corte;
+    if (target === 'g-asist') gAsistencia(corte);
+    if (target === 'g-internet') gInternet(corte);
+    if (target === 'g-pob') gPob(corte);
+    if (target === 'g-nini') gNini(corte);
+  });
+});
+
+// Render inicial
+gPerfil();
+gAsistencia();
+gRezago();
+gTic();
+gInternet();
+gIpmEduc();
+gBecaIdioma();
+gPob();
+gIpm();
+gIpmPriv();
+gSeg();
+gHac();
+gCondAct();
+gDes();
+gNini();
+gVol();
+gTdom();
+</script>
+</body>
+</html>

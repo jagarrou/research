@@ -6,30 +6,8 @@
 
 ## Productos principales
 
-### 1. Presentación para el taller
-**`Presentacion_Taller_AGSCR_ENAHO2025.pptx`** (18 diapositivas, 16:9)
-
-Lista para proyección. Incluye notas para el facilitador en cada diapositiva. Cada gráfico y KPI muestra la cifra absoluta expandida junto con su porcentaje (ej. "100% (390 mil de 391 mil)").
-
-### 2. Tablero interactivo
-**`dashboard_AGSCR_ENAHO2025.html`** (autocontenido)
-
+### Tablero interactivo
 Para abrir en navegador. Los KPIs muestran cifras absolutas expandidas (ej. "318 472") con la proporción entre paréntesis. Los gráficos exhiben los porcentajes y los datalabels combinan % con cifras expandidas. Los tooltips amplían la información con `personas afectadas / total expandido`. Filtros por dimensión (quintil, región, sexo, zona, migración, pobreza, discapacidad).
-
-### 3. Informe técnico
-**`Informe_Tecnico_AGSCR_ENAHO2025.docx`**
-
-Tablas con cuatro columnas tipo: Personas afectadas (expandido), %, IC95% y Total expandido (denominador). Cada porcentaje viene acompañado de la magnitud absoluta de personas que está detrás.
-
-### 4. Banco de gráficos PNG
-**`/graficos/g01–g24.png`**
-
-24 visualizaciones individuales con el formato unificado: % + magnitud absoluta en miles ("X% (Y mil personas)").
-
-### 5. Tablas de datos
-**`/data/`**
-
-Más de 60 CSV con resultados detallados (proporciones, IC95%, n, n_eff, **pop_pos**, **pop_total**) por objetivo y dimensión. Las columnas `pop_pos` y `pop_total` son las personas expandidas y el total expandido respectivamente.
 
 ## Cifras de referencia (para citar)
 
@@ -84,4 +62,4 @@ Los productos enfatizan cuatro ejes de brecha:
 
 ---
 
-*Elaboración: Dirección de Programa Educativo, Asociación de Guías y Scouts de Costa Rica · Mayo 2026*
+*Elaboración: Coordinación Nacional de Programa Educativo, Asociación de Guías y Scouts de Costa Rica · Mayo 2026*
